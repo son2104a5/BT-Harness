@@ -72,6 +72,17 @@ app.get('/api/events', (req: Request, res: Response) => {
 });
 
 // 2. Status & Config
+app.get('/api/test-gemini', async (req: Request, res: Response) => {
+  try {
+    const key = config.geminiApiKey || process.env.GEMINI_API_KEY || '';
+    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${key}`);
+    const data = await response.json();
+    res.json({ status: response.status, data });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 app.get('/api/status', (req: Request, res: Response) => {
   const activeKey = config.provider === 'gemini' ? config.geminiApiKey : config.anthropicApiKey;
   res.json({
@@ -84,7 +95,7 @@ app.get('/api/status', (req: Request, res: Response) => {
 });
 
 app.post('/api/config', (req: Request, res: Response) => {
-  const { apiKey, provider } = req.body;
+  const { apiKey, provider, model } = req.body;
   if (!apiKey || typeof apiKey !== 'string' || !apiKey.trim()) {
     res.status(400).json({ success: false, message: 'API Key không hợp lệ.' });
     return;
@@ -98,9 +109,15 @@ app.post('/api/config', (req: Request, res: Response) => {
     config.geminiApiKey = apiKey.trim();
     process.env.GEMINI_API_KEY = apiKey.trim();
     process.env.GOOGLE_GENERATIVE_AI_API_KEY = apiKey.trim();
+    if (model && typeof model === 'string') {
+      config.geminiModel = model.trim();
+    }
   } else {
     config.anthropicApiKey = apiKey.trim();
     process.env.ANTHROPIC_API_KEY = apiKey.trim();
+    if (model && typeof model === 'string') {
+      config.anthropicModel = model.trim();
+    }
   }
 
   // Hot reload harness
@@ -111,7 +128,7 @@ app.post('/api/config', (req: Request, res: Response) => {
     success: true,
     provider: targetProvider,
     model: targetProvider === 'gemini' ? config.geminiModel : config.anthropicModel,
-    message: `Đã kết nối thành công với ${targetProvider === 'gemini' ? 'Google Gemini 1.5 Flash' : 'Claude 3.5 Haiku'}!`
+    message: `Đã kết nối thành công với ${targetProvider === 'gemini' ? ('Google ' + config.geminiModel) : 'Claude 3.5 Haiku'}!`
   });
 });
 

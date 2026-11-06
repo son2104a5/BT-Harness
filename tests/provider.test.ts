@@ -1,6 +1,7 @@
 import { test, describe } from 'node:test';
 import assert from 'node:assert';
 import { detectProviderFromKey, getLanguageModel } from '../src/harness/provider.js';
+import { config } from '../src/config.js';
 
 describe('Provider Factory Suite', () => {
   test('detectProviderFromKey identifies Gemini keys', () => {
@@ -26,7 +27,7 @@ describe('Provider Factory Suite', () => {
   test('getLanguageModel returns valid model instance for gemini and anthropic', () => {
     const geminiModel = getLanguageModel('gemini');
     assert.ok(geminiModel);
-    assert.strictEqual(geminiModel.modelId, 'gemini-1.5-flash');
+    assert.strictEqual(geminiModel.modelId, config.geminiModel);
 
     const anthropicModel = getLanguageModel('anthropic');
     assert.ok(anthropicModel);

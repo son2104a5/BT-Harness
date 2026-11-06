@@ -15,7 +15,7 @@ export const config = {
   provider: defaultProvider as LLMProvider,
   geminiApiKey: geminiKey,
   anthropicApiKey: anthropicKey,
-  geminiModel: 'gemini-1.5-flash',
+  geminiModel: process.env.GEMINI_MODEL || 'gemini-3.8-flash',
   anthropicModel: 'claude-3-5-haiku-20241022',
   modelName: 'claude-3-5-haiku-20241022',
   maxSteps: Number(process.env.MAX_STEPS) || 5,

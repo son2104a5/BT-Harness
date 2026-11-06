@@ -106,3 +106,4 @@ export function calculateCost(usage: any, provider: LLMProvider = 'gemini'): Cos
 3. **Kiểm thử Tương tác Web**:
    - Dán key Gemini trên giao diện web, kiểm tra badge chuyển sang Gemini Flash.
    - Thực hiện câu hỏi chấm điểm, kiểm tra các lượt gọi tool, popup Human-in-the-loop duyệt điểm và huy hiệu Cache Hit.
+

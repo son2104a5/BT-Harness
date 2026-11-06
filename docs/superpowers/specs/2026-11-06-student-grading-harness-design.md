@@ -280,3 +280,4 @@ $$\text{Cost} = (T_{\text{input}} \times 0.8 + T_{\text{cache\_write}} \times 1.
 | **Test 4: Kế thừa lịch sử & Cache Hit** | Hỏi tiếp câu 2: "Bạn tiếp theo cần chấm là ai?" | AI nhớ ngữ cảnh danh sách học viên, log hiển thị `Cache Read > 0` (Cache Hit ⚡). |
 | **Test 5: Xử lý lỗi mã không tồn tại** | Hỏi: "Chấm điểm cho bạn HV999" | AI báo lỗi thân thiện: "Không tìm thấy học viên HV999 trong hệ thống", không bị crash. |
 | **Test 6: Giới hạn MAX_STEPS** | Đặt câu hỏi phức tạp kích hoạt nhiều bước | Lượt 5 tự động tắt tool, model tổng hợp bằng dữ liệu hiện có. |
+

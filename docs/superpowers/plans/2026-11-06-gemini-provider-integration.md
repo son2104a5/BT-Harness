@@ -445,3 +445,4 @@ Verify `provider` and `model` report cleanly.
 ```bash
 git commit --allow-empty -m "chore: verify Gemini Flash dual provider integration"
 ```
+
