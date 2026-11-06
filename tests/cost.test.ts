@@ -3,6 +3,7 @@ import assert from 'node:assert';
 import {
   calculateClaudeCost,
   calculateModelCost,
+  calculateGeminiCost,
   PRICE_BASE_INPUT,
   PRICE_CACHE_WRITE,
   PRICE_CACHE_READ,
@@ -127,6 +128,82 @@ describe('Cost Calculator Suite', () => {
     const usage = { promptTokens: 1000, completionTokens: 200 };
     const r1 = calculateClaudeCost(usage, 'gemini');
     const r2 = calculateModelCost(usage, 'gemini');
+    assert.deepStrictEqual(r1, r2);
+  });
+
+  test('calculates correct cost with AI SDK 7 standard cachedTokens', () => {
+    const usage = {
+      inputTokens: 2500,
+      outputTokens: 200,
+      cachedTokens: 2000
+    };
+    const breakdown = calculateClaudeCost(usage, 'gemini');
+    assert.strictEqual(breakdown.cacheReadTokens, 2000);
+    assert.strictEqual(breakdown.inputTokens, 500);
+    assert.strictEqual(breakdown.outputTokens, 200);
+    assert.strictEqual(breakdown.costUSD, 0.000135);
+  });
+
+  test('calculates correct cost with promptTokensDetails.cachedTokens', () => {
+    const usage = {
+      promptTokens: 2300,
+      completionTokens: 100,
+      promptTokensDetails: {
+        cachedTokens: 2000
+      }
+    };
+    const breakdown = calculateClaudeCost(usage);
+    assert.strictEqual(breakdown.cacheReadTokens, 2000);
+    assert.strictEqual(breakdown.inputTokens, 300);
+    assert.strictEqual(breakdown.costUSD, 0.0008);
+  });
+
+  test('calculates cost with AI SDK 7 inputTokenDetails and outputTokenDetails', () => {
+    const usage = {
+      inputTokens: 2300,
+      outputTokens: 100,
+      inputTokenDetails: {
+        noCacheTokens: 300,
+        cacheReadTokens: 2000,
+        cacheWriteTokens: 0
+      },
+      outputTokenDetails: {
+        textTokens: 100,
+        reasoningTokens: 0
+      }
+    };
+    const breakdown = calculateClaudeCost(usage);
+    assert.strictEqual(breakdown.cacheReadTokens, 2000);
+    assert.strictEqual(breakdown.cacheWriteTokens, 0);
+    assert.strictEqual(breakdown.inputTokens, 300);
+    assert.strictEqual(breakdown.outputTokens, 100);
+    assert.strictEqual(breakdown.costUSD, 0.0008);
+  });
+
+  test('handles snake_case Anthropic provider metadata and iterations', () => {
+    const usage = {
+      input_tokens: 3000,
+      output_tokens: 500,
+      providerMetadata: {
+        anthropic: {
+          iterations: [
+            { type: 'compaction', inputTokens: 1000, outputTokens: 200, cacheCreationInputTokens: 500, cacheReadInputTokens: 0 },
+            { type: 'message', inputTokens: 2000, outputTokens: 300, cacheCreationInputTokens: 0, cacheReadInputTokens: 1500 }
+          ]
+        }
+      }
+    };
+    const breakdown = calculateClaudeCost(usage);
+    assert.strictEqual(breakdown.cacheWriteTokens, 500);
+    assert.strictEqual(breakdown.cacheReadTokens, 1500);
+    assert.strictEqual(breakdown.inputTokens, 1000);
+    assert.strictEqual(breakdown.outputTokens, 500);
+  });
+
+  test('calculateGeminiCost helper calculates cost with Gemini rates', () => {
+    const usage = { promptTokens: 1000, completionTokens: 200 };
+    const r1 = calculateClaudeCost(usage, 'gemini');
+    const r2 = calculateGeminiCost(usage);
     assert.deepStrictEqual(r1, r2);
   });
 });
