@@ -226,6 +226,13 @@ export interface TurnResult {
   stepsCount: number;
 }
 
+export type HarnessEvent =
+  | { type: 'step_start'; step: number; maxSteps: number }
+  | { type: 'tool_call'; toolName: string; args: any }
+  | { type: 'tool_result'; toolName: string; result: any }
+  | { type: 'final_answer'; text: string }
+  | { type: 'cost_summary'; cost: CostBreakdown; questionCount: number };
+
 export class GradingHarness {
   private messages: CoreMessage[] = [];
   private questionCount = 0;
@@ -239,7 +246,7 @@ export class GradingHarness {
     return this.messages;
   }
 
-  public async ask(userQuery: string): Promise<TurnResult> {
+  public async ask(userQuery: string, onEvent?: (event: HarnessEvent) => void): Promise<TurnResult> {
     this.questionCount++;
     const tools = createGradingTools(this.approvalHandler);
     const maxSteps = config.maxSteps;
@@ -284,6 +291,7 @@ export class GradingHarness {
       const step = options.step ?? options.stepNumber ?? 0;
       currentStep = step;
       logStepStart(step, maxSteps);
+      if (onEvent) onEvent({ type: 'step_start', step, maxSteps });
 
       // Limit enforcement on the final step
       if (shouldDisableToolsOnLastStep(step, maxSteps)) {
@@ -318,11 +326,13 @@ export class GradingHarness {
           if (stepEvent.toolCalls && stepEvent.toolCalls.length > 0) {
             for (const tc of stepEvent.toolCalls) {
               logToolCall(tc.toolName, tc.args);
+              if (onEvent) onEvent({ type: 'tool_call', toolName: tc.toolName, args: tc.args });
             }
           }
           if (stepEvent.toolResults && stepEvent.toolResults.length > 0) {
             for (const tr of stepEvent.toolResults) {
               logToolResult(tr.toolName, tr.result);
+              if (onEvent) onEvent({ type: 'tool_result', toolName: tr.toolName, result: tr.result });
             }
           }
 
@@ -363,6 +373,10 @@ export class GradingHarness {
 
     // Log final observability summary
     logCostSummary(accumulatedCost, this.questionCount);
+    if (onEvent) {
+      onEvent({ type: 'final_answer', text: result.text });
+      onEvent({ type: 'cost_summary', cost: accumulatedCost, questionCount: this.questionCount });
+    }
 
     return {
       text: result.text,

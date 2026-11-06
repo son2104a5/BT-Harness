@@ -1,0 +1,816 @@
+<!DOCTYPE html>
+<html lang="vi" class="h-full bg-slate-950 text-slate-100">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Trợ Lý Chấm Điểm Học Viên · Agent Harness Buổi 2</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Font Awesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#eef2ff',
+              100: '#e0e7ff',
+              500: '#6366f1',
+              600: '#4f46e5',
+              700: '#4338ca',
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    /* Custom scrollbar */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: rgba(15, 23, 42, 0.6); }
+    ::-webkit-scrollbar-thumb { background: rgba(100, 116, 139, 0.5); border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: rgba(148, 163, 184, 0.8); }
+    pre { white-space: pre-wrap; word-break: break-word; }
+  </style>
+</head>
+<body class="h-full flex flex-col font-sans overflow-hidden bg-gradient-to-br from-slate-950 via-slate-900 to-indigo-950">
+
+  <!-- TOP NAVIGATION BAR -->
+  <header class="border-b border-slate-800/80 bg-slate-900/70 backdrop-blur-md px-6 py-3 flex items-center justify-between shrink-0 shadow-lg">
+    <div class="flex items-center gap-3">
+      <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-600 via-purple-600 to-pink-500 flex items-center justify-center shadow-lg shadow-indigo-500/20">
+        <i class="fa-solid fa-graduation-cap text-white text-lg"></i>
+      </div>
+      <div>
+        <div class="flex items-center gap-2">
+          <h1 class="text-lg font-bold text-white tracking-tight">AI Grading Agent Harness</h1>
+          <span class="text-xs px-2 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 font-medium">Buổi 2 · AI SDK 7</span>
+        </div>
+        <p class="text-xs text-slate-400">Trợ lý chấm điểm tự hành · Ephemeral Prompt Caching · Human-in-the-loop</p>
+      </div>
+    </div>
+
+    <!-- Badges & Actions -->
+    <div class="flex items-center gap-3">
+      <div class="hidden md:flex items-center gap-2 text-xs">
+        <span class="px-2.5 py-1 rounded-lg bg-slate-800/90 border border-slate-700/80 text-slate-300 flex items-center gap-1.5">
+          <i class="fa-solid fa-microchip text-indigo-400"></i> Claude 3.5 Haiku
+        </span>
+        <span class="px-2.5 py-1 rounded-lg bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 flex items-center gap-1.5">
+          <i class="fa-solid fa-bolt text-emerald-400"></i> Ephemeral Cache
+        </span>
+        <span class="px-2.5 py-1 rounded-lg bg-amber-500/10 border border-amber-500/30 text-amber-300 flex items-center gap-1.5">
+          <i class="fa-solid fa-arrows-spin text-amber-400"></i> Max 5 Bước
+        </span>
+        <span id="apiKeyStatusBadge" class="px-2.5 py-1 rounded-lg bg-slate-800 border border-slate-700 text-slate-400 flex items-center gap-1.5">
+          <span class="w-2 h-2 rounded-full bg-slate-500"></span> Đang tải...
+        </span>
+      </div>
+
+      <button onclick="resetData()" title="Reset lại trạng thái ban đầu" class="px-3 py-1.5 text-xs font-medium text-slate-300 hover:text-white bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-lg transition-all flex items-center gap-1.5">
+        <i class="fa-solid fa-rotate-left"></i> Reset Demo
+      </button>
+
+      <button onclick="openConfigModal()" class="px-3 py-1.5 text-xs font-medium text-white bg-indigo-600 hover:bg-indigo-500 rounded-lg transition-all flex items-center gap-1.5 shadow-md shadow-indigo-600/30">
+        <i class="fa-solid fa-key"></i> Cấu hình Key
+      </button>
+    </div>
+  </header>
+
+  <!-- MAIN WORKSPACE -->
+  <div class="flex-1 flex overflow-hidden">
+
+    <!-- LEFT COLUMN: INTERACTIVE CHAT & OBSERVABILITY (60%) -->
+    <div class="flex-1 flex flex-col border-r border-slate-800/80 bg-slate-900/30 backdrop-blur-sm relative">
+
+      <!-- Chat History -->
+      <div id="chatContainer" class="flex-1 overflow-y-auto p-4 space-y-4">
+        <!-- Welcome intro bubble -->
+        <div class="max-w-3xl mx-auto bg-slate-900/80 border border-slate-800 rounded-2xl p-5 shadow-xl">
+          <div class="flex items-start gap-3.5">
+            <div class="w-9 h-9 rounded-xl bg-indigo-600/20 text-indigo-400 border border-indigo-500/30 flex items-center justify-center shrink-0">
+              <i class="fa-solid fa-robot text-base"></i>
+            </div>
+            <div class="flex-1 text-sm space-y-2">
+              <h3 class="font-bold text-white text-base">Xin chào Thầy/Cô! Tôi là Trợ lý Chấm điểm Học viên AI.</h3>
+              <p class="text-slate-300 leading-relaxed">
+                Hệ thống được xây dựng theo chuẩn kiến trúc Agent Harness của <strong class="text-indigo-400">Buổi 2 (AI SDK 7 & Anthropic)</strong>, hỗ trợ đầy đủ:
+              </p>
+              <div class="grid grid-cols-2 gap-2 pt-1 text-xs text-slate-300">
+                <div class="bg-slate-800/70 p-2 rounded-lg border border-slate-700/50 flex items-center gap-2">
+                  <i class="fa-solid fa-wrench text-amber-400"></i>
+                  <span><strong>3 Custom Tools:</strong> Rubric, Bài nộp & Lưu điểm</span>
+                </div>
+                <div class="bg-slate-800/70 p-2 rounded-lg border border-slate-700/50 flex items-center gap-2">
+                  <i class="fa-solid fa-shield-halved text-emerald-400"></i>
+                  <span><strong>Human-in-the-loop:</strong> Bắt buộc duyệt trước khi lưu</span>
+                </div>
+                <div class="bg-slate-800/70 p-2 rounded-lg border border-slate-700/50 flex items-center gap-2">
+                  <i class="fa-solid fa-bolt text-cyan-400"></i>
+                  <span><strong>Cache Hit ⚡:</strong> Tiết kiệm 90% từ câu thứ 2</span>
+                </div>
+                <div class="bg-slate-800/70 p-2 rounded-lg border border-slate-700/50 flex items-center gap-2">
+                  <i class="fa-solid fa-chart-line text-purple-400"></i>
+                  <span><strong>Observability:</strong> Trace từng lượt & Chi phí USD</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Dynamic chat messages will be inserted here -->
+      </div>
+
+      <!-- Human-in-the-loop Pending Approval Banner / Modal -->
+      <div id="hitlModal" class="hidden absolute inset-x-4 bottom-24 max-w-2xl mx-auto bg-slate-900 border-2 border-amber-500/80 rounded-2xl p-5 shadow-2xl z-30 backdrop-blur-xl animate-bounce-short">
+        <div class="flex items-center justify-between pb-3 border-b border-slate-800 mb-3">
+          <div class="flex items-center gap-2.5 text-amber-400 font-bold">
+            <span class="flex h-3 w-3 relative">
+              <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
+              <span class="relative inline-flex rounded-full h-3 w-3 bg-amber-500"></span>
+            </span>
+            <span>⚠️ YÊU CẦU PHÊ DUYỆT TỪ GIẢNG VIÊN (HUMAN-IN-THE-LOOP)</span>
+          </div>
+          <span class="text-xs px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 font-mono">Tool: save_grade</span>
+        </div>
+
+        <div id="hitlContent" class="space-y-3 text-sm">
+          <!-- Injected via JS -->
+        </div>
+
+        <div class="mt-4 pt-3 border-t border-slate-800 flex items-center justify-end gap-3">
+          <button onclick="submitApproval(false)" class="px-4 py-2 text-xs font-semibold text-rose-300 bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/30 rounded-xl transition-all flex items-center gap-1.5">
+            <i class="fa-solid fa-xmark"></i> Từ chối phê duyệt
+          </button>
+          <button onclick="submitApproval(true)" class="px-5 py-2 text-xs font-semibold text-white bg-emerald-600 hover:bg-emerald-500 rounded-xl transition-all shadow-lg shadow-emerald-600/30 flex items-center gap-1.5">
+            <i class="fa-solid fa-check"></i> Chấp thuận & Lưu điểm chính thức
+          </button>
+        </div>
+      </div>
+
+      <!-- Quick Action Prompts & Input Bar -->
+      <div class="border-t border-slate-800/80 bg-slate-900/80 p-4 space-y-3 shrink-0">
+        <!-- Quick Prompt Chips -->
+        <div class="flex items-center gap-2 overflow-x-auto pb-1 text-xs">
+          <span class="text-slate-400 font-medium shrink-0"><i class="fa-solid fa-wand-magic-sparkles text-indigo-400"></i> Gợi ý nhanh:</span>
+          <button onclick="useQuickPrompt('Hãy tra cứu barem tiêu chí bài ASM01 và danh sách học viên chưa được chấm điểm')" class="px-3 py-1 rounded-full bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 shrink-0 transition-all">
+            📋 Xem barem & DS chưa chấm
+          </button>
+          <button onclick="useQuickPrompt('Chấm điểm bài làm của bạn An mã HV001 và gửi đề xuất lưu điểm')" class="px-3 py-1 rounded-full bg-indigo-950/80 hover:bg-indigo-900 text-indigo-300 border border-indigo-700/60 shrink-0 transition-all">
+            ⭐ Chấm bài HV001 (An)
+          </button>
+          <button onclick="useQuickPrompt('Còn những bạn học viên nào chưa có điểm?')" class="px-3 py-1 rounded-full bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 shrink-0 transition-all">
+            ⚡ Hỏi tiếp (Test Cache Hit)
+          </button>
+          <button onclick="useQuickPrompt('Chấm điểm cho học viên HV999')" class="px-3 py-1 rounded-full bg-rose-950/60 hover:bg-rose-900 text-rose-300 border border-rose-800/50 shrink-0 transition-all">
+            🛡️ Chấm HV999 (Test chịu lỗi)
+          </button>
+        </div>
+
+        <!-- Chat Input Form -->
+        <form onsubmit="handleSend(event)" class="flex gap-2">
+          <input
+            id="messageInput"
+            type="text"
+            placeholder="Hỏi trợ lý (ví dụ: 'Hãy chấm bài cho bạn HV001', 'Xem barem ASM01')..."
+            class="flex-1 bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all"
+          />
+          <button
+            id="sendBtn"
+            type="submit"
+            class="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl font-medium text-sm transition-all flex items-center gap-2 shadow-lg shadow-indigo-600/30 disabled:opacity-50"
+          >
+            <span>Gửi</span>
+            <i class="fa-solid fa-paper-plane text-xs"></i>
+          </button>
+        </form>
+      </div>
+
+    </div>
+
+    <!-- RIGHT COLUMN: LIVE DATA INSPECTOR & OBSERVABILITY DASHBOARD (40%) -->
+    <div class="w-96 lg:w-[460px] flex flex-col bg-slate-950/60 border-l border-slate-800/80 shrink-0">
+
+      <!-- Tab Headers -->
+      <div class="flex border-b border-slate-800 bg-slate-900/60 text-xs font-medium">
+        <button onclick="switchTab('students')" id="tabBtn-students" class="flex-1 py-3 px-2 text-indigo-400 border-b-2 border-indigo-500 flex items-center justify-center gap-1.5 transition-all">
+          <i class="fa-solid fa-users"></i> Học Viên
+        </button>
+        <button onclick="switchTab('rubric')" id="tabBtn-rubric" class="flex-1 py-3 px-2 text-slate-400 hover:text-slate-200 flex items-center justify-center gap-1.5 transition-all">
+          <i class="fa-solid fa-ruler-combined"></i> Barem Rubric
+        </button>
+        <button onclick="switchTab('grades')" id="tabBtn-grades" class="flex-1 py-3 px-2 text-slate-400 hover:text-slate-200 flex items-center justify-center gap-1.5 transition-all">
+          <i class="fa-solid fa-award"></i> Bảng Điểm
+        </button>
+        <button onclick="switchTab('stats')" id="tabBtn-stats" class="flex-1 py-3 px-2 text-slate-400 hover:text-slate-200 flex items-center justify-center gap-1.5 transition-all">
+          <i class="fa-solid fa-chart-pie"></i> Thống Kê
+        </button>
+      </div>
+
+      <!-- Tab Content Area -->
+      <div class="flex-1 overflow-y-auto p-4 space-y-4 text-xs">
+
+        <!-- TAB 1: STUDENTS & SUBMISSIONS -->
+        <div id="tabContent-students" class="space-y-3">
+          <div class="flex items-center justify-between text-slate-400">
+            <span class="font-semibold text-slate-200">Danh Sách Bài Nộp (ASM01)</span>
+            <span id="pendingCountBadge" class="px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 font-mono">Đang tải...</span>
+          </div>
+
+          <div id="studentsList" class="space-y-3">
+            <!-- Dynamically populated -->
+          </div>
+        </div>
+
+        <!-- TAB 2: RUBRIC -->
+        <div id="tabContent-rubric" class="hidden space-y-3">
+          <div class="bg-indigo-950/40 border border-indigo-800/40 rounded-xl p-3">
+            <div class="font-bold text-indigo-300 text-sm mb-1" id="rubricTitle">Bài tập ASM01</div>
+            <div class="text-slate-400" id="rubricMaxScore">Tổng điểm tối đa: 10.0</div>
+          </div>
+
+          <div id="rubricCriteriaList" class="space-y-2.5">
+            <!-- Dynamically populated -->
+          </div>
+        </div>
+
+        <!-- TAB 3: GRADES -->
+        <div id="tabContent-grades" class="hidden space-y-3">
+          <div class="flex items-center justify-between">
+            <span class="font-semibold text-slate-200">Bảng Điểm Đã Duyệt Chính Thức</span>
+            <span id="gradesCountBadge" class="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 font-mono">0 bản ghi</span>
+          </div>
+
+          <div id="gradesList" class="space-y-3">
+            <!-- Dynamically populated -->
+          </div>
+        </div>
+
+        <!-- TAB 4: STATS & CACHE OBSERVABILITY -->
+        <div id="tabContent-stats" class="hidden space-y-4">
+          <div class="grid grid-cols-2 gap-3">
+            <div class="bg-slate-900 border border-slate-800 rounded-xl p-3">
+              <div class="text-slate-400 mb-1">Tổng câu hỏi</div>
+              <div id="statTotalQueries" class="text-xl font-bold text-white">0</div>
+            </div>
+            <div class="bg-slate-900 border border-slate-800 rounded-xl p-3">
+              <div class="text-slate-400 mb-1">Tỷ lệ Cache Hit</div>
+              <div id="statCacheHitRatio" class="text-xl font-bold text-emerald-400">0%</div>
+            </div>
+            <div class="bg-slate-900 border border-slate-800 rounded-xl p-3">
+              <div class="text-slate-400 mb-1">Tổng Tokens</div>
+              <div id="statTotalTokens" class="text-xl font-bold text-indigo-300">0</div>
+            </div>
+            <div class="bg-slate-900 border border-slate-800 rounded-xl p-3">
+              <div class="text-slate-400 mb-1">Tiết kiệm nhờ Cache</div>
+              <div id="statTotalSavings" class="text-xl font-bold text-green-400">$0.00</div>
+            </div>
+          </div>
+
+          <!-- Bảng đơn giá Claude 3.5 Haiku -->
+          <div class="bg-slate-900/80 border border-slate-800 rounded-xl p-3 space-y-2">
+            <div class="font-bold text-slate-200 flex items-center justify-between">
+              <span>Đơn Giá Claude 3.5 Haiku</span>
+              <span class="text-[10px] text-slate-400">(per 1M tokens)</span>
+            </div>
+            <div class="space-y-1.5 text-slate-300">
+              <div class="flex justify-between"><span>Base Input:</span><span class="font-mono text-slate-400">$0.80</span></div>
+              <div class="flex justify-between"><span>Cache Write:</span><span class="font-mono text-amber-400">$1.00</span></div>
+              <div class="flex justify-between"><span>Cache Read (Hit ⚡):</span><span class="font-mono text-emerald-400 font-bold">$0.08 (-90%)</span></div>
+              <div class="flex justify-between"><span>Output:</span><span class="font-mono text-slate-400">$4.00</span></div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+  <!-- API KEY CONFIG MODAL -->
+  <div id="configModal" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4">
+      <div class="flex items-center justify-between pb-3 border-b border-slate-800">
+        <h3 class="text-base font-bold text-white flex items-center gap-2">
+          <i class="fa-solid fa-key text-indigo-400"></i> Cấu Hình Anthropic API Key
+        </h3>
+        <button onclick="closeConfigModal()" class="text-slate-400 hover:text-white">
+          <i class="fa-solid fa-xmark text-lg"></i>
+        </button>
+      </div>
+
+      <p class="text-xs text-slate-400 leading-relaxed">
+        Nhập khóa API Key của Anthropic để cấp quyền cho mô hình <strong>Claude 3.5 Haiku</strong> hoạt động:
+      </p>
+
+      <div>
+        <label class="block text-xs font-semibold text-slate-300 mb-1.5">ANTHROPIC_API_KEY</label>
+        <input
+          id="apiKeyInput"
+          type="password"
+          placeholder="sk-ant-api03-..."
+          class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-indigo-500 font-mono"
+        />
+      </div>
+
+      <div class="pt-2 flex justify-end gap-2 text-xs font-medium">
+        <button onclick="closeConfigModal()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg">Đóng</button>
+        <button onclick="saveApiKey()" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg shadow-lg shadow-indigo-600/30">Lưu Cấu Hình</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- CODE PREVIEW MODAL -->
+  <div id="codeModal" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl max-w-2xl w-full p-6 shadow-2xl space-y-4 max-h-[85vh] flex flex-col">
+      <div class="flex items-center justify-between pb-3 border-b border-slate-800 shrink-0">
+        <h3 id="codeModalTitle" class="text-base font-bold text-white flex items-center gap-2">
+          <i class="fa-solid fa-code text-indigo-400"></i> Mã Nguồn Bài Nộp
+        </h3>
+        <button onclick="closeCodeModal()" class="text-slate-400 hover:text-white">
+          <i class="fa-solid fa-xmark text-lg"></i>
+        </button>
+      </div>
+      <div class="flex-1 overflow-y-auto">
+        <pre id="codeModalContent" class="bg-slate-950 p-4 rounded-xl font-mono text-xs text-indigo-200 border border-slate-800/80"></pre>
+      </div>
+    </div>
+  </div>
+
+  <!-- SCRIPT LOGIC -->
+  <script>
+    let currentPendingApprovalId = null;
+    let globalStats = {
+      queries: 0,
+      totalTokens: 0,
+      cacheTokens: 0,
+      savingsUSD: 0
+    };
+
+    // 1. Initialize SSE connection
+    function initSSE() {
+      const evtSource = new EventSource('/api/events');
+
+      evtSource.onmessage = (event) => {
+        try {
+          const data = JSON.parse(event.data);
+          handleSSEEvent(data);
+        } catch (e) {
+          console.error('SSE JSON parse error:', e);
+        }
+      };
+
+      evtSource.onerror = () => {
+        console.warn('SSE connection closed or lost. Retrying in 3s...');
+      };
+    }
+
+    function handleSSEEvent(data) {
+      if (data.type === 'step_start') {
+        appendStepLiveIndicator(data.step, data.maxSteps);
+      } else if (data.type === 'tool_call') {
+        appendToolCallIndicator(data.toolName, data.args);
+      } else if (data.type === 'tool_result') {
+        appendToolResultIndicator(data.toolName, data.result);
+      } else if (data.type === 'approval_required') {
+        showHITLApproval(data.approvalId, data.request);
+      } else if (data.type === 'approval_resolved') {
+        hideHITLApproval();
+      } else if (data.type === 'data_updated') {
+        fetchData();
+      }
+    }
+
+    // 2. Fetch server status and database data
+    async function checkStatus() {
+      try {
+        const res = await fetch('/api/status');
+        const data = await res.json();
+        const badge = document.getElementById('apiKeyStatusBadge');
+        if (data.configured) {
+          badge.className = 'px-2.5 py-1 rounded-lg bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 flex items-center gap-1.5';
+          badge.innerHTML = '<span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span> Sẵn Sàng (API Key OK)';
+        } else {
+          badge.className = 'px-2.5 py-1 rounded-lg bg-rose-500/10 border border-rose-500/30 text-rose-400 flex items-center gap-1.5 cursor-pointer';
+          badge.innerHTML = '<span class="w-2 h-2 rounded-full bg-rose-500"></span> Chưa Có API Key (Bấm cài đặt)';
+          badge.onclick = openConfigModal;
+        }
+      } catch (e) {
+        console.error('Status check failed', e);
+      }
+    }
+
+    async function fetchData() {
+      try {
+        const res = await fetch('/api/data');
+        const data = await res.json();
+        renderStudents(data.students);
+        renderRubric(data.rubric);
+        renderGrades(data.grades);
+      } catch (e) {
+        console.error('Failed to fetch data', e);
+      }
+    }
+
+    function renderStudents(students) {
+      const container = document.getElementById('studentsList');
+      const pendingCount = students.filter(s => s.status === 'pending').length;
+      document.getElementById('pendingCountBadge').textContent = `${pendingCount} chờ chấm`;
+
+      container.innerHTML = students.map(s => `
+        <div class="bg-slate-900 border border-slate-800 rounded-xl p-3 space-y-2 hover:border-slate-700 transition-all">
+          <div class="flex items-center justify-between">
+            <span class="font-bold text-white text-sm">${s.fullName}</span>
+            <span class="font-mono text-xs px-2 py-0.5 rounded ${s.status === 'pending' ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30' : 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'}">
+              ${s.status === 'pending' ? 'Chưa chấm' : 'Đã có điểm ✅'}
+            </span>
+          </div>
+          <div class="flex items-center justify-between text-slate-400">
+            <span>Mã: <strong class="text-slate-200 font-mono">${s.studentId}</strong></span>
+            <button onclick="viewCode('${s.studentId}', '${s.fullName}', ${JSON.stringify(s.submissionCode).replace(/"/g, '&quot;')})" class="text-indigo-400 hover:text-indigo-300 text-xs flex items-center gap-1">
+              <i class="fa-solid fa-code"></i> Xem code
+            </button>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function renderRubric(rubric) {
+      if (!rubric) return;
+      document.getElementById('rubricTitle').textContent = `${rubric.assignmentId}: ${rubric.assignmentTitle}`;
+      document.getElementById('rubricMaxScore').textContent = `Thang điểm chuẩn: ${rubric.totalMaxScore}.0 điểm`;
+
+      const container = document.getElementById('rubricCriteriaList');
+      container.innerHTML = rubric.criteria.map(c => `
+        <div class="bg-slate-900 border border-slate-800 rounded-xl p-3 space-y-1">
+          <div class="flex items-center justify-between font-bold text-slate-200">
+            <span>${c.name}</span>
+            <span class="text-indigo-400 font-mono">${c.maxScore}đ</span>
+          </div>
+          <p class="text-slate-400 text-[11px] leading-relaxed">${c.description}</p>
+        </div>
+      `).join('');
+    }
+
+    function renderGrades(grades) {
+      const container = document.getElementById('gradesList');
+      document.getElementById('gradesCountBadge').textContent = `${grades.length} bài đã lưu`;
+
+      if (grades.length === 0) {
+        container.innerHTML = `<div class="text-center py-8 text-slate-500 italic">Chưa có bài nào được duyệt và lưu điểm.</div>`;
+        return;
+      }
+
+      container.innerHTML = grades.map(g => `
+        <div class="bg-slate-900 border border-emerald-500/30 rounded-xl p-3 space-y-2">
+          <div class="flex items-center justify-between">
+            <span class="font-bold text-white text-sm">${g.studentId}</span>
+            <span class="text-emerald-400 font-bold font-mono text-sm">${g.totalScore}/10</span>
+          </div>
+          <div class="text-slate-400 text-[11px] italic bg-slate-950 p-2 rounded border border-slate-800">
+            "${g.feedback}"
+          </div>
+          <div class="flex items-center justify-between text-[10px] text-slate-500 font-mono pt-1">
+            <span>Người duyệt: ${g.approvedBy}</span>
+            <span>${new Date(g.gradedAt).toLocaleTimeString()}</span>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    // 3. Chat Form & Turn Handling
+    let activeAgentBubble = null;
+    let activeTraceContainer = null;
+
+    async function handleSend(e) {
+      e?.preventDefault();
+      const input = document.getElementById('messageInput');
+      const text = input.value.trim();
+      if (!text) return;
+
+      input.value = '';
+      document.getElementById('sendBtn').disabled = true;
+
+      // Append user bubble
+      appendUserMessage(text);
+
+      // Create waiting agent bubble
+      createAgentBubble();
+
+      try {
+        const res = await fetch('/api/chat', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ message: text })
+        });
+        const data = await res.json();
+
+        if (data.success) {
+          finalizeAgentBubble(data.text, data.cost);
+          updateGlobalStats(data.cost);
+        } else {
+          showErrorInAgentBubble(data.error || 'Đã xảy ra lỗi.');
+        }
+      } catch (err) {
+        showErrorInAgentBubble(err.message);
+      } finally {
+        document.getElementById('sendBtn').disabled = false;
+        fetchData();
+      }
+    }
+
+    function useQuickPrompt(promptText) {
+      document.getElementById('messageInput').value = promptText;
+      handleSend();
+    }
+
+    function appendUserMessage(text) {
+      const container = document.getElementById('chatContainer');
+      const div = document.createElement('div');
+      div.className = 'max-w-3xl mx-auto flex justify-end';
+      div.innerHTML = `
+        <div class="bg-indigo-600 text-white px-4 py-2.5 rounded-2xl rounded-tr-none text-sm shadow-md max-w-[80%]">
+          ${escapeHtml(text)}
+        </div>
+      `;
+      container.appendChild(div);
+      container.scrollTop = container.scrollHeight;
+    }
+
+    function createAgentBubble() {
+      const container = document.getElementById('chatContainer');
+      const div = document.createElement('div');
+      div.className = 'max-w-3xl mx-auto flex items-start gap-3';
+      div.innerHTML = `
+        <div class="w-8 h-8 rounded-xl bg-gradient-to-tr from-indigo-600 to-purple-600 flex items-center justify-center shrink-0 shadow-md">
+          <i class="fa-solid fa-robot text-white text-xs"></i>
+        </div>
+        <div class="flex-1 bg-slate-900 border border-slate-800 rounded-2xl rounded-tl-none p-4 space-y-3 shadow-lg">
+          <!-- Step trace timeline -->
+          <div class="trace-container space-y-2 text-xs">
+            <div class="flex items-center gap-2 text-indigo-400 animate-pulse font-mono">
+              <i class="fa-solid fa-circle-notch fa-spin"></i>
+              <span>Agent đang phân tích và thực thi vòng lặp đa bước...</span>
+            </div>
+          </div>
+          <!-- Final text placeholder -->
+          <div class="agent-text text-sm text-slate-200 leading-relaxed hidden"></div>
+          <!-- Cost & Observability pill placeholder -->
+          <div class="cost-pill hidden pt-2 border-t border-slate-800"></div>
+        </div>
+      `;
+      container.appendChild(div);
+      container.scrollTop = container.scrollHeight;
+
+      activeAgentBubble = div;
+      activeTraceContainer = div.querySelector('.trace-container');
+    }
+
+    function appendStepLiveIndicator(step, maxSteps) {
+      if (!activeTraceContainer) return;
+      const stepDiv = document.createElement('div');
+      stepDiv.className = 'flex items-center gap-2 font-mono text-xs text-indigo-300 font-semibold pt-1';
+      stepDiv.innerHTML = `<i class="fa-solid fa-arrow-right text-indigo-500"></i> Lượt ${step + 1}/${maxSteps}:`;
+      activeTraceContainer.appendChild(stepDiv);
+      document.getElementById('chatContainer').scrollTop = document.getElementById('chatContainer').scrollHeight;
+    }
+
+    function appendToolCallIndicator(toolName, args) {
+      if (!activeTraceContainer) return;
+      const toolDiv = document.createElement('div');
+      toolDiv.className = 'bg-slate-950 border border-slate-800 rounded-lg p-2.5 font-mono text-[11px] text-slate-300 space-y-1';
+      toolDiv.innerHTML = `
+        <div class="flex items-center justify-between text-indigo-400 font-semibold">
+          <span><i class="fa-solid fa-wrench"></i> Gọi Tool: <strong>${escapeHtml(toolName)}</strong></span>
+          <span class="text-slate-500 text-[10px]">ai-sdk</span>
+        </div>
+        <div class="text-slate-400 break-all">${escapeHtml(JSON.stringify(args))}</div>
+      `;
+      activeTraceContainer.appendChild(toolDiv);
+      document.getElementById('chatContainer').scrollTop = document.getElementById('chatContainer').scrollHeight;
+    }
+
+    function appendToolResultIndicator(toolName, result) {
+      if (!activeTraceContainer) return;
+      const isError = result?.isError || result?.success === false;
+      const resDiv = document.createElement('div');
+      resDiv.className = `border rounded-lg p-2 font-mono text-[11px] ${isError ? 'bg-rose-950/30 border-rose-800 text-rose-300' : 'bg-slate-950/70 border-slate-800 text-slate-300'}`;
+      resDiv.innerHTML = `
+        <div class="flex items-center gap-1.5 font-semibold ${isError ? 'text-rose-400' : 'text-emerald-400'}">
+          <i class="fa-solid ${isError ? 'fa-triangle-exclamation' : 'fa-circle-check'}"></i>
+          <span>Kết quả tool: ${escapeHtml(toolName)}</span>
+        </div>
+        <div class="text-slate-400 text-[10px] truncate">${escapeHtml(JSON.stringify(result))}</div>
+      `;
+      activeTraceContainer.appendChild(resDiv);
+      document.getElementById('chatContainer').scrollTop = document.getElementById('chatContainer').scrollHeight;
+    }
+
+    function finalizeAgentBubble(text, cost) {
+      if (!activeAgentBubble) return;
+
+      // Show markdown text
+      const textElem = activeAgentBubble.querySelector('.agent-text');
+      textElem.innerHTML = formatMarkdown(text);
+      textElem.classList.remove('hidden');
+
+      // Show cost & cache badge
+      const costElem = activeAgentBubble.querySelector('.cost-pill');
+      const isCacheHit = cost.cacheReadTokens > 0;
+      const hitPercent = (cost.cacheHitRatio * 100).toFixed(1);
+
+      costElem.innerHTML = `
+        <div class="flex flex-wrap items-center justify-between gap-2 text-xs">
+          <div class="flex items-center gap-2">
+            ${isCacheHit
+              ? `<span class="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 font-bold flex items-center gap-1">
+                   <i class="fa-solid fa-bolt text-emerald-400"></i> CACHE HIT: ${cost.cacheReadTokens.toLocaleString()} tokens (${hitPercent}%)
+                 </span>`
+              : cost.cacheWriteTokens > 0
+                ? `<span class="px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30 font-medium">
+                     <i class="fa-solid fa-box-archive text-amber-400"></i> Cache Write: ${cost.cacheWriteTokens.toLocaleString()} tokens
+                   </span>`
+                : `<span class="px-2 py-0.5 rounded-full bg-slate-800 text-slate-400 font-mono">Non-cached</span>`
+            }
+            <span class="text-slate-400 font-mono">Tổng: ${cost.totalTokens.toLocaleString()} tokens</span>
+          </div>
+
+          <div class="flex items-center gap-2 text-slate-300 font-mono font-medium">
+            ${cost.cacheSavingsUSD > 0 ? `<span class="text-emerald-400 text-[11px]">(Tiết kiệm: $${cost.cacheSavingsUSD.toFixed(6)})</span>` : ''}
+            <span class="text-amber-300 font-bold">💰 $${cost.costUSD.toFixed(6)} (~ ${cost.costVND} đ)</span>
+          </div>
+        </div>
+      `;
+      costElem.classList.remove('hidden');
+
+      document.getElementById('chatContainer').scrollTop = document.getElementById('chatContainer').scrollHeight;
+    }
+
+    function showErrorInAgentBubble(errMsg) {
+      if (!activeAgentBubble) return;
+      const textElem = activeAgentBubble.querySelector('.agent-text');
+      textElem.innerHTML = `<div class="p-3 bg-rose-950/40 border border-rose-800 text-rose-300 rounded-xl text-xs"><i class="fa-solid fa-circle-xmark mr-1"></i> ${escapeHtml(errMsg)}</div>`;
+      textElem.classList.remove('hidden');
+    }
+
+    // 4. Human-in-the-loop Modal Logic
+    function showHITLApproval(approvalId, req) {
+      currentPendingApprovalId = approvalId;
+      const modal = document.getElementById('hitlModal');
+      const content = document.getElementById('hitlContent');
+
+      const scoresHtml = Object.entries(req.scores || {})
+        .map(([k, v]) => `<div class="flex justify-between bg-slate-950 px-3 py-1.5 rounded border border-slate-800"><span>${k}</span><span class="font-bold font-mono text-indigo-400">${v}đ</span></div>`)
+        .join('');
+
+      content.innerHTML = `
+        <div class="flex items-center justify-between">
+          <div>Học viên: <strong class="text-white text-base">${escapeHtml(req.studentName || req.studentId)}</strong> <span class="font-mono text-slate-400">(${req.studentId})</span></div>
+          <div class="text-lg font-bold text-emerald-400 font-mono bg-emerald-500/10 border border-emerald-500/30 px-3 py-1 rounded-xl">
+            Tổng: ${req.totalScore}/10
+          </div>
+        </div>
+        <div class="grid grid-cols-2 gap-2 text-xs pt-1">
+          ${scoresHtml}
+        </div>
+        <div class="p-2.5 bg-slate-950 border border-slate-800 rounded-xl text-slate-300 text-xs italic">
+          "${escapeHtml(req.feedback)}"
+        </div>
+      `;
+
+      modal.classList.remove('hidden');
+    }
+
+    function hideHITLApproval() {
+      document.getElementById('hitlModal').classList.add('hidden');
+      currentPendingApprovalId = null;
+    }
+
+    async function submitApproval(approved) {
+      if (!currentPendingApprovalId) return;
+
+      try {
+        await fetch('/api/approve', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            approvalId: currentPendingApprovalId,
+            approved
+          })
+        });
+        hideHITLApproval();
+      } catch (e) {
+        alert('Lỗi phê duyệt: ' + e.message);
+      }
+    }
+
+    // 5. Global Stats & UI Tabs
+    function updateGlobalStats(cost) {
+      globalStats.queries++;
+      globalStats.totalTokens += cost.totalTokens;
+      globalStats.cacheTokens += cost.cacheReadTokens;
+      globalStats.savingsUSD += cost.cacheSavingsUSD;
+
+      document.getElementById('statTotalQueries').textContent = globalStats.queries;
+      document.getElementById('statTotalTokens').textContent = globalStats.totalTokens.toLocaleString();
+      document.getElementById('statTotalSavings').textContent = `$${globalStats.savingsUSD.toFixed(4)}`;
+
+      const hitRatio = globalStats.totalTokens > 0
+        ? ((globalStats.cacheTokens / globalStats.totalTokens) * 100).toFixed(1)
+        : 0;
+      document.getElementById('statCacheHitRatio').textContent = `${hitRatio}%`;
+    }
+
+    function switchTab(tabName) {
+      ['students', 'rubric', 'grades', 'stats'].forEach(t => {
+        const btn = document.getElementById(`tabBtn-${t}`);
+        const content = document.getElementById(`tabContent-${t}`);
+        if (t === tabName) {
+          btn.className = 'flex-1 py-3 px-2 text-indigo-400 border-b-2 border-indigo-500 flex items-center justify-center gap-1.5 font-bold transition-all';
+          content.classList.remove('hidden');
+        } else {
+          btn.className = 'flex-1 py-3 px-2 text-slate-400 hover:text-slate-200 flex items-center justify-center gap-1.5 transition-all';
+          content.classList.add('hidden');
+        }
+      });
+    }
+
+    async function resetData() {
+      if (!confirm('Bạn có chắc chắn muốn reset dữ liệu học viên và bảng điểm về trạng thái ban đầu?')) return;
+      try {
+        await fetch('/api/reset', { method: 'POST' });
+        alert('Đã reset dữ liệu thành công!');
+        fetchData();
+      } catch (e) {
+        alert('Lỗi khi reset: ' + e.message);
+      }
+    }
+
+    // Modals
+    function openConfigModal() {
+      document.getElementById('configModal').classList.remove('hidden');
+    }
+    function closeConfigModal() {
+      document.getElementById('configModal').classList.add('hidden');
+    }
+    async function saveApiKey() {
+      const key = document.getElementById('apiKeyInput').value.trim();
+      if (!key) return alert('Vui lòng nhập API Key.');
+      try {
+        const res = await fetch('/api/config', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ apiKey: key })
+        });
+        const data = await res.json();
+        if (data.success) {
+          alert('Đã lưu API Key thành công!');
+          closeConfigModal();
+          checkStatus();
+        } else {
+          alert(data.message);
+        }
+      } catch (e) {
+        alert('Lỗi kết nối: ' + e.message);
+      }
+    }
+
+    function viewCode(studentId, name, code) {
+      document.getElementById('codeModalTitle').textContent = `Mã Nguồn: ${name} (${studentId})`;
+      document.getElementById('codeModalContent').textContent = code;
+      document.getElementById('codeModal').classList.remove('hidden');
+    }
+    function closeCodeModal() {
+      document.getElementById('codeModal').classList.add('hidden');
+    }
+
+    function escapeHtml(str) {
+      return String(str || '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
+
+    function formatMarkdown(text) {
+      // Basic formatting for tables, bold and paragraphs
+      let html = escapeHtml(text)
+        .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+        .replace(/\n\n/g, '<br><br>')
+        .replace(/\n/g, '<br>');
+      return html;
+    }
+
+    // Run on load
+    window.addEventListener('DOMContentLoaded', () => {
+      initSSE();
+      checkStatus();
+      fetchData();
+    });
+  </script>
+</body>
+</html>

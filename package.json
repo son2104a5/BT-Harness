@@ -6,6 +6,7 @@
   "scripts": {
     "start": "tsx src/index.ts",
     "demo": "tsx src/index.ts --demo",
+    "web": "tsx src/server.ts",
     "test": "tsx --test tests/**/*.test.ts",
     "typecheck": "tsc --noEmit"
   },
@@ -13,10 +14,14 @@
     "@ai-sdk/anthropic": "^1.1.9",
     "ai": "^4.1.45",
     "chalk": "^5.4.1",
+    "cors": "^2.8.6",
     "dotenv": "^16.4.7",
+    "express": "^5.3.0",
     "zod": "^3.24.2"
   },
   "devDependencies": {
+    "@types/cors": "^2.8.19",
+    "@types/express": "^5.0.6",
     "@types/node": "^22.13.1",
     "tsx": "^4.19.3",
     "typescript": "^5.7.3"
