@@ -110,7 +110,6 @@ export class GradingHarness {
     // Execute generateText with step loop hooks
     const result = await (generateText as any)({
       model: anthropic(config.modelName),
-      system: SYSTEM_INSTRUCTION,
       messages: [systemMessage, ...this.messages],
       tools,
       maxSteps,
