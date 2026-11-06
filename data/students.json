@@ -1,0 +1,23 @@
+[
+  {
+    "studentId": "HV001",
+    "fullName": "Nguyễn Văn An",
+    "assignmentId": "ASM01",
+    "status": "pending",
+    "submissionCode": "function calculateCart(items, voucher) {\n  if (!Array.isArray(items)) throw new Error('Items must be an array');\n  let subtotal = 0;\n  for (let item of items) {\n    subtotal += item.price * item.quantity;\n  }\n  let discount = 0;\n  if (voucher && voucher.code === 'SALE10') {\n    discount = subtotal * 0.1;\n  }\n  const vat = (subtotal - discount) * 0.1;\n  return {\n    subtotal,\n    discount,\n    vat,\n    total: subtotal - discount + vat\n  };\n}"
+  },
+  {
+    "studentId": "HV002",
+    "fullName": "Trần Thị Bình",
+    "assignmentId": "ASM01",
+    "status": "pending",
+    "submissionCode": "function calculateCart(items, voucher) {\n  let total = 0;\n  for (let i = 0; i < items.length; i++) {\n    total += items[i].price;\n  }\n  return { total };\n}"
+  },
+  {
+    "studentId": "HV003",
+    "fullName": "Lê Hoàng Cường",
+    "assignmentId": "ASM01",
+    "status": "pending",
+    "submissionCode": "function calculateCart(items, voucher) {\n  if (!Array.isArray(items) || items.length === 0) return { subtotal: 0, discount: 0, vat: 0, total: 0 };\n  let subtotal = 0;\n  for (const item of items) {\n    if (item.price < 0 || item.quantity < 0) throw new Error('Invalid item values');\n    subtotal += item.price * item.quantity;\n  }\n  let discount = 0;\n  if (voucher && voucher.code === 'VIP20') {\n    discount = Math.min(subtotal, subtotal * 0.2);\n  }\n  const vat = Math.max(0, subtotal - discount) * 0.1;\n  return {\n    subtotal: Math.round(subtotal),\n    discount: Math.round(discount),\n    vat: Math.round(vat),\n    total: Math.round(subtotal - discount + vat)\n  };\n}"
+  }
+]

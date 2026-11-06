@@ -1,0 +1,31 @@
+{
+  "assignmentId": "ASM01",
+  "assignmentTitle": "Xây dựng hàm xử lý giỏ hàng thương mại điện tử (calculateCart)",
+  "totalMaxScore": 10,
+  "criteria": [
+    {
+      "id": "logic",
+      "name": "Tính đúng đắn thuật toán",
+      "maxScore": 4.0,
+      "description": "Tính toán đúng tổng tiền hàng, áp mã giảm giá hợp lệ, tính đúng thuế VAT 10%."
+    },
+    {
+      "id": "clean_code",
+      "name": "Cấu trúc & Clean Code",
+      "maxScore": 3.0,
+      "description": "Đặt tên biến/hàm rõ nghĩa, cấu trúc module gọn gàng, không lặp code, có comment giải thích."
+    },
+    {
+      "id": "error_handling",
+      "name": "Xử lý ngoại lệ",
+      "maxScore": 2.0,
+      "description": "Kiểm tra đầu vào không hợp lệ (mảng rỗng, giá trị âm, sản phẩm thiếu trường)."
+    },
+    {
+      "id": "edge_cases",
+      "name": "Edge cases & Test",
+      "maxScore": 1.0,
+      "description": "Xử lý mã giảm giá vượt quá tổng tiền, số lượng lớn, làm tròn số tiền."
+    }
+  ]
+}
