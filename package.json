@@ -11,9 +11,9 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@ai-sdk/anthropic": "^1.1.9",
-    "@ai-sdk/google": "^1.2.22",
-    "ai": "^4.1.45",
+    "@ai-sdk/anthropic": "^4.0.97",
+    "@ai-sdk/google": "^4.0.112",
+    "ai": "^7.0.163",
     "chalk": "^5.4.1",
     "cors": "^2.8.6",
     "dotenv": "^16.4.7",
