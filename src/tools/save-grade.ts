@@ -5,16 +5,18 @@ import { ToolApprovalRequest } from '../types.js';
 
 export type ApprovalHandler = (request: ToolApprovalRequest) => Promise<boolean>;
 
+export const saveGradeSchema = z.object({
+  studentId: z.string().describe('Mã học viên (ví dụ: HV001)'),
+  assignmentId: z.string().default('ASM01').describe('Mã bài tập'),
+  scores: z.record(z.string(), z.number().min(0)).describe('Điểm chi tiết từng tiêu chí theo rubric'),
+  totalScore: z.number().min(0).max(10).describe('Tổng điểm trên thang 10'),
+  feedback: z.string().describe('Nhận xét chi tiết ưu điểm và nhược điểm của bài nộp')
+});
+
 export function createSaveGradeTool(approvalHandler: ApprovalHandler) {
-  return tool({
+  const t = tool({
     description: 'Lưu điểm và nhận xét chính thức cho học viên. Thao tác này yêu cầu Giảng viên phê duyệt trước khi ghi.',
-    parameters: z.object({
-      studentId: z.string().describe('Mã học viên (ví dụ: HV001)'),
-      assignmentId: z.string().default('ASM01').describe('Mã bài tập'),
-      scores: z.record(z.string(), z.number().min(0)).describe('Điểm chi tiết từng tiêu chí theo rubric'),
-      totalScore: z.number().min(0).max(10).describe('Tổng điểm trên thang 10'),
-      feedback: z.string().describe('Nhận xét chi tiết ưu điểm và nhược điểm của bài nộp')
-    }),
+    inputSchema: saveGradeSchema,
     execute: async ({ studentId, assignmentId, scores, totalScore, feedback }) => {
       try {
         const student = await getStudentById(studentId);
@@ -68,4 +70,6 @@ export function createSaveGradeTool(approvalHandler: ApprovalHandler) {
       }
     }
   });
+  (t as any).parameters = saveGradeSchema;
+  return t;
 }

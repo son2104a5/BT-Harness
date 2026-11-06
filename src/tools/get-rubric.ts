@@ -2,11 +2,13 @@ import { tool } from 'ai';
 import { z } from 'zod';
 import { loadRubric } from '../data-store.js';
 
+const rubricSchema = z.object({
+  assignmentId: z.string().optional().describe('Mã bài tập cần tra cứu (mặc định ASM01)')
+});
+
 export const getRubricTool = tool({
   description: 'Tra cứu tiêu chí và barem chấm điểm chính thức của bài tập.',
-  parameters: z.object({
-    assignmentId: z.string().optional().describe('Mã bài tập cần tra cứu (mặc định ASM01)')
-  }),
+  inputSchema: rubricSchema,
   execute: async ({ assignmentId }) => {
     try {
       const rubric = await loadRubric(assignmentId || 'ASM01');
@@ -22,3 +24,4 @@ export const getRubricTool = tool({
     }
   }
 });
+(getRubricTool as any).parameters = rubricSchema;

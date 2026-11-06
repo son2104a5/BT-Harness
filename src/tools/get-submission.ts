@@ -2,12 +2,14 @@ import { tool } from 'ai';
 import { z } from 'zod';
 import { getStudents, getStudentById } from '../data-store.js';
 
+const submissionSchema = z.object({
+  studentId: z.string().optional().describe('Mã học viên cần lấy bài nộp (ví dụ: HV001)'),
+  listPendingOnly: z.boolean().optional().describe('Nếu true, trả về danh sách các học viên chưa chấm')
+});
+
 export const getSubmissionTool = tool({
   description: 'Lấy bài làm/mã nguồn của học viên hoặc liệt kê danh sách học viên cần chấm.',
-  parameters: z.object({
-    studentId: z.string().optional().describe('Mã học viên cần lấy bài nộp (ví dụ: HV001)'),
-    listPendingOnly: z.boolean().optional().describe('Nếu true, trả về danh sách các học viên chưa chấm')
-  }),
+  inputSchema: submissionSchema,
   execute: async ({ studentId, listPendingOnly }) => {
     try {
       if (studentId) {
@@ -43,3 +45,4 @@ export const getSubmissionTool = tool({
     }
   }
 });
+(getSubmissionTool as any).parameters = submissionSchema;

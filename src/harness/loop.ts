@@ -365,8 +365,9 @@ export class GradingHarness {
     }
 
     // Update conversation messages from response
-    if (result.response && result.response.messages) {
-      this.messages.push(...result.response.messages);
+    const responseMessages = result.responseMessages ?? result.response?.messages;
+    if (responseMessages && responseMessages.length > 0) {
+      this.messages.push(...responseMessages);
     } else {
       this.messages.push({
         role: 'assistant',
