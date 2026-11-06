@@ -1,5 +1,7 @@
-import { generateText, CoreMessage } from 'ai';
+import { generateText, ModelMessage } from 'ai';
 import chalk from 'chalk';
+
+export type CoreMessage = ModelMessage;
 import { config } from '../config.js';
 import { createGradingTools } from '../tools/index.js';
 import { ApprovalHandler } from '../tools/save-grade.js';
@@ -274,20 +276,25 @@ export class GradingHarness {
     const systemMessage: CoreMessage = {
       role: 'system',
       content: SYSTEM_INSTRUCTION,
-      experimental_providerMetadata: {
+      providerOptions: {
         anthropic: {
           cacheControl: { type: 'ephemeral' }
         }
       }
     };
     // Support providerMetadata property for SDK compatibility
+    (systemMessage as any).experimental_providerMetadata = {
+      anthropic: {
+        cacheControl: { type: 'ephemeral' }
+      }
+    };
     (systemMessage as any).providerMetadata = {
       anthropic: {
         cacheControl: { type: 'ephemeral' }
       }
     };
 
-    const prepareStepHandler = async (options: { step?: number; stepNumber?: number }) => {
+    const prepareStepHandler = async (options: { step?: number; stepNumber?: number; messages?: any[] }) => {
       const step = options.step ?? options.stepNumber ?? 0;
       currentStep = step;
       logStepStart(step, maxSteps);
@@ -301,6 +308,7 @@ export class GradingHarness {
           experimental_activeTools: [] as string[],
           toolChoice: 'none' as const,
           messages: [
+            ...(options.messages ?? []),
             {
               role: 'system',
               content: 'CẢNH BÁO: Đây là bước cuối cùng được phép. Bạn KHÔNG THỂ gọi thêm bất kỳ công cụ nào. Hãy tổng hợp câu trả lời đầy đủ cho người dùng bằng toàn bộ dữ liệu bạn đã thu thập được từ các bước trước.'
@@ -317,6 +325,7 @@ export class GradingHarness {
       result = await (generateText as any)({
         model: getLanguageModel(),
         messages: [systemMessage, ...this.messages],
+        allowSystemInMessages: true,
         tools,
         maxSteps,
         prepareStep: prepareStepHandler,
