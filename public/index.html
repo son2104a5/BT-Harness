@@ -677,6 +677,10 @@
 
     function appendStepLiveIndicator(step, maxSteps) {
       if (!activeTraceContainer) return;
+      const spinnerText = activeAgentBubble?.querySelector('.trace-container > div:first-child span');
+      if (spinnerText) {
+        spinnerText.textContent = `Agent đang thực thi lượt ${step + 1}/${maxSteps}...`;
+      }
       const stepDiv = document.createElement('div');
       stepDiv.className = 'flex items-center gap-2 font-mono text-xs text-indigo-300 font-semibold pt-1';
       stepDiv.innerHTML = `<i class="fa-solid fa-arrow-right text-indigo-500"></i> Lượt ${step + 1}/${maxSteps}:`;
@@ -718,6 +722,13 @@
     function finalizeAgentBubble(text, cost) {
       if (!activeAgentBubble) return;
 
+      // Stop & complete the spinner indicator
+      const spinner = activeAgentBubble.querySelector('.trace-container > div:first-child');
+      if (spinner) {
+        spinner.innerHTML = '<i class="fa-solid fa-circle-check text-emerald-400"></i> <span class="text-emerald-300 font-semibold">Đã hoàn thành vòng lặp xử lý</span>';
+        spinner.className = 'flex items-center gap-2 text-emerald-400 font-mono text-xs';
+      }
+
       // Show markdown text
       const textElem = activeAgentBubble.querySelector('.agent-text');
       textElem.innerHTML = formatMarkdown(text);
@@ -757,6 +768,10 @@
 
     function showErrorInAgentBubble(errMsg) {
       if (!activeAgentBubble) return;
+      const spinner = activeAgentBubble.querySelector('.trace-container > div:first-child');
+      if (spinner) {
+        spinner.classList.add('hidden');
+      }
       const textElem = activeAgentBubble.querySelector('.agent-text');
       textElem.innerHTML = `<div class="p-3 bg-rose-950/40 border border-rose-800 text-rose-300 rounded-xl text-xs"><i class="fa-solid fa-circle-xmark mr-1"></i> ${escapeHtml(errMsg)}</div>`;
       textElem.classList.remove('hidden');
@@ -976,6 +991,11 @@
         });
         const data = await res.json();
         if (data.success) {
+          try {
+            localStorage.setItem('saved_api_key', key);
+            if (selectedProvider) localStorage.setItem('saved_provider', selectedProvider);
+            if (selectedModel) localStorage.setItem('saved_model', selectedModel);
+          } catch (err) {}
           alert(data.message || 'Đã lưu và cập nhật mô hình thành công!');
           closeConfigModal();
           input.value = '';
@@ -1016,8 +1036,25 @@
     }
 
     // Run on load
-    window.addEventListener('DOMContentLoaded', () => {
+    window.addEventListener('DOMContentLoaded', async () => {
       initSSE();
+      // Auto-restore saved API key from localStorage if present
+      try {
+        const savedKey = localStorage.getItem('saved_api_key');
+        const savedProvider = localStorage.getItem('saved_provider');
+        const savedModel = localStorage.getItem('saved_model');
+        if (savedKey) {
+          await fetch('/api/config', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              apiKey: savedKey,
+              ...(savedProvider && savedProvider !== 'auto' ? { provider: savedProvider } : {}),
+              ...(savedModel ? { model: savedModel } : {})
+            })
+          });
+        }
+      } catch (err) {}
       checkStatus();
       fetchData();
     });

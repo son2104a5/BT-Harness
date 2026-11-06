@@ -135,6 +135,37 @@ app.post('/api/config', (req: Request, res: Response) => {
   harnessInstance = createWebHarness();
   broadcastSSE({ type: 'data_updated' });
 
+  // Persist to .env for server restarts
+  fs.readFile(path.resolve(process.cwd(), '.env'), 'utf-8')
+    .catch(() => '')
+    .then((envContent) => {
+      const lines = envContent.split(/\r?\n/).filter(Boolean);
+      const envMap = new Map<string, string>();
+      for (const line of lines) {
+        const trimmed = line.trim();
+        if (trimmed && !trimmed.startsWith('#')) {
+          const idx = trimmed.indexOf('=');
+          if (idx !== -1) {
+            envMap.set(trimmed.slice(0, idx).trim(), trimmed.slice(idx + 1).trim());
+          }
+        }
+      }
+      envMap.set('LLM_PROVIDER', targetProvider);
+      if (targetProvider === 'deepseek') {
+        envMap.set('DEEPSEEK_API_KEY', apiKey.trim());
+        if (model && typeof model === 'string') envMap.set('DEEPSEEK_MODEL', model.trim());
+        envMap.set('DEEPSEEK_BASE_URL', config.deepseekBaseUrl);
+      } else if (targetProvider === 'gemini') {
+        envMap.set('GEMINI_API_KEY', apiKey.trim());
+        if (model && typeof model === 'string') envMap.set('GEMINI_MODEL', model.trim());
+      } else {
+        envMap.set('ANTHROPIC_API_KEY', apiKey.trim());
+      }
+      const newContent = Array.from(envMap.entries()).map(([k, v]) => `${k}=${v}`).join('\n') + '\n';
+      return fs.writeFile(path.resolve(process.cwd(), '.env'), newContent, 'utf-8');
+    })
+    .catch(() => {});
+
   const activeModelName = targetProvider === 'deepseek'
     ? ('DeepSeek ' + config.deepseekModel)
     : (targetProvider === 'gemini' ? ('Google ' + config.geminiModel) : 'Claude 3.5 Haiku');

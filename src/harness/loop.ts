@@ -1,4 +1,4 @@
-import { generateText, ModelMessage } from 'ai';
+import { generateText, ModelMessage, isStepCount, stepCountIs } from 'ai';
 import chalk from 'chalk';
 
 export type CoreMessage = ModelMessage;
@@ -327,6 +327,7 @@ export class GradingHarness {
         messages: [systemMessage, ...this.messages],
         allowSystemInMessages: true,
         tools,
+        stopWhen: typeof isStepCount === 'function' ? isStepCount(maxSteps) : undefined,
         maxSteps,
         prepareStep: prepareStepHandler,
         experimental_prepareStep: prepareStepHandler,
@@ -334,14 +335,16 @@ export class GradingHarness {
           // Log tool calls and results
           if (stepEvent.toolCalls && stepEvent.toolCalls.length > 0) {
             for (const tc of stepEvent.toolCalls) {
-              logToolCall(tc.toolName, tc.args);
-              if (onEvent) onEvent({ type: 'tool_call', toolName: tc.toolName, args: tc.args });
+              const args = tc.input ?? tc.args;
+              logToolCall(tc.toolName, args);
+              if (onEvent) onEvent({ type: 'tool_call', toolName: tc.toolName, args });
             }
           }
           if (stepEvent.toolResults && stepEvent.toolResults.length > 0) {
             for (const tr of stepEvent.toolResults) {
-              logToolResult(tr.toolName, tr.result);
-              if (onEvent) onEvent({ type: 'tool_result', toolName: tr.toolName, result: tr.result });
+              const res = tr.output ?? tr.result;
+              logToolResult(tr.toolName, res);
+              if (onEvent) onEvent({ type: 'tool_result', toolName: tr.toolName, result: res });
             }
           }
 
