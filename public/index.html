@@ -328,6 +328,19 @@
         </div>
 
         <div>
+          <label class="block text-xs font-semibold text-slate-300 mb-1.5">MÔ HÌNH (PROVIDER)</label>
+          <select
+            id="providerSelect"
+            onchange="onProviderSelectChange()"
+            class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-indigo-500 transition-all cursor-pointer font-sans"
+          >
+            <option value="auto">Tự động nhận diện</option>
+            <option value="gemini">Google Gemini 1.5 Flash</option>
+            <option value="anthropic">Claude 3.5 Haiku</option>
+          </select>
+        </div>
+
+        <div>
           <div class="flex items-center justify-between mb-1.5">
             <label class="block text-xs font-semibold text-slate-300">API KEY</label>
             <span id="keyDetectionHint" class="text-[11px] font-mono text-slate-400">Chờ nhập key...</span>
@@ -820,15 +833,32 @@
     }
 
     // Modals & Smart Key Auto-Detection
+    function onProviderSelectChange() {
+      const select = document.getElementById('providerSelect');
+      const input = document.getElementById('apiKeyInput');
+      if (select && input) {
+        if (select.value === 'gemini') {
+          input.placeholder = 'AIzaSy... (Google Gemini API Key)';
+        } else if (select.value === 'anthropic') {
+          input.placeholder = 'sk-ant-api03-... (Anthropic Claude API Key)';
+        } else {
+          input.placeholder = 'AIzaSy... hoặc sk-ant-api03-...';
+        }
+      }
+      onApiKeyInputChange();
+    }
+
     function onApiKeyInputChange() {
       const val = document.getElementById('apiKeyInput').value.trim();
       const hint = document.getElementById('keyDetectionHint');
       const subtext = document.getElementById('keyDetectionSubtext');
       const saveBtn = document.getElementById('saveApiKeyBtn');
+      const providerSelect = document.getElementById('providerSelect');
+      const selected = providerSelect ? providerSelect.value : 'auto';
 
       if (!val) {
         hint.className = 'text-[11px] font-mono text-slate-400';
-        hint.textContent = 'Chờ nhập key...';
+        hint.textContent = selected === 'gemini' ? 'Chờ nhập Gemini Key...' : (selected === 'anthropic' ? 'Chờ nhập Claude Key...' : 'Chờ nhập key...');
         subtext.innerHTML = 'Hỗ trợ: <code class="text-emerald-400 font-mono">AIza...</code> (Gemini Flash) hoặc <code class="text-indigo-400 font-mono">sk-ant...</code> (Claude)';
         if (saveBtn) saveBtn.className = 'px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg shadow-lg shadow-indigo-600/30 transition-all flex items-center gap-1.5';
         return;
@@ -846,7 +876,7 @@
         if (saveBtn) saveBtn.className = 'px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg shadow-lg shadow-indigo-600/30 transition-all flex items-center gap-1.5';
       } else {
         hint.className = 'text-[11px] font-semibold text-amber-400 flex items-center gap-1';
-        hint.innerHTML = '<i class="fa-solid fa-circle-question"></i> Khóa khác';
+        hint.innerHTML = selected !== 'auto' ? `<i class="fa-solid fa-circle-info"></i> ${selected === 'gemini' ? 'Gemini' : 'Claude'}` : '<i class="fa-solid fa-circle-question"></i> Khóa khác';
         subtext.innerHTML = '<span class="text-amber-400 flex items-center gap-1.5"><i class="fa-solid fa-triangle-exclamation"></i> Khóa không khớp tiền tố AIza... hoặc sk-ant...</span>';
         if (saveBtn) saveBtn.className = 'px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg shadow-lg shadow-indigo-600/30 transition-all flex items-center gap-1.5';
       }
@@ -864,13 +894,21 @@
 
     async function saveApiKey() {
       const input = document.getElementById('apiKeyInput');
+      const providerSelect = document.getElementById('providerSelect');
       const key = input.value.trim();
       if (!key) return alert('Vui lòng nhập API Key.');
+
+      const selectedProvider = providerSelect?.value;
+      const payload = {
+        apiKey: key,
+        ...(selectedProvider && selectedProvider !== 'auto' ? { provider: selectedProvider } : {})
+      };
+
       try {
         const res = await fetch('/api/config', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ apiKey: key })
+          body: JSON.stringify(payload)
         });
         const data = await res.json();
         if (data.success) {

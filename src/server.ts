@@ -85,7 +85,7 @@ app.get('/api/status', (req: Request, res: Response) => {
 
 app.post('/api/config', (req: Request, res: Response) => {
   const { apiKey, provider } = req.body;
-  if (!apiKey || typeof apiKey !== 'string') {
+  if (!apiKey || typeof apiKey !== 'string' || !apiKey.trim()) {
     res.status(400).json({ success: false, message: 'API Key không hợp lệ.' });
     return;
   }
