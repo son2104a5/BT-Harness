@@ -107,6 +107,69 @@ describe('Custom Tools Suite', () => {
     assert.ok(result.message.includes('Approval service failure'));
   });
 
+  test('saveGradeTool returns error when studentId does not exist without calling approvalHandler', async () => {
+    let approvalCalled = false;
+    const mockApproval = async () => {
+      approvalCalled = true;
+      return true;
+    };
+    const saveGradeTool = createSaveGradeTool(mockApproval);
+
+    const result = await (saveGradeTool as any).execute({
+      studentId: 'HV999',
+      scores: { logic: 2 },
+      totalScore: 5.0,
+      feedback: 'Không tìm thấy học viên'
+    });
+
+    assert.strictEqual(result.success, false);
+    assert.strictEqual(result.isError, true);
+    assert.strictEqual(result.message, `Không tìm thấy học viên có mã 'HV999' trong hệ thống để lưu điểm.`);
+    assert.strictEqual(approvalCalled, false);
+  });
+
+  test('saveGradeTool validates score ranges with Zod schema', () => {
+    const saveGradeTool = createSaveGradeTool(async () => true);
+    const schema = (saveGradeTool as any).parameters;
+
+    // Valid
+    const valid = schema.safeParse({
+      studentId: 'HV001',
+      assignmentId: 'ASM01',
+      scores: { logic: 3.5, clean_code: 2.5 },
+      totalScore: 6.0,
+      feedback: 'Tốt'
+    });
+    assert.strictEqual(valid.success, true);
+
+    // Invalid totalScore > 10
+    const overScore = schema.safeParse({
+      studentId: 'HV001',
+      scores: { logic: 11 },
+      totalScore: 11,
+      feedback: 'Quá điểm'
+    });
+    assert.strictEqual(overScore.success, false);
+
+    // Invalid totalScore < 0
+    const negTotal = schema.safeParse({
+      studentId: 'HV001',
+      scores: { logic: 0 },
+      totalScore: -1,
+      feedback: 'Điểm âm'
+    });
+    assert.strictEqual(negTotal.success, false);
+
+    // Invalid criteria score < 0
+    const negCrit = schema.safeParse({
+      studentId: 'HV001',
+      scores: { logic: -0.5 },
+      totalScore: 5,
+      feedback: 'Tiêu chí âm'
+    });
+    assert.strictEqual(negCrit.success, false);
+  });
+
   test('createGradingTools returns full tool suite', () => {
     const mockApproval = async () => true;
     const tools = createGradingTools(mockApproval);

@@ -1,5 +1,11 @@
 import chalk from 'chalk';
 import { CostBreakdown } from '../types.js';
+import {
+  PRICE_BASE_INPUT,
+  PRICE_CACHE_WRITE,
+  PRICE_CACHE_READ,
+  PRICE_OUTPUT
+} from './cost.js';
 
 export function formatToolPayload(payload: any, maxLength: number = 100): string {
   try {
@@ -43,10 +49,10 @@ export function formatCostSummary(cost: CostBreakdown, questionIndex: number): s
       : chalk.gray('MISS ─ (0 tokens)');
 
   lines.push(chalk.cyan.bold(`┌──────────────── BÁO CÁO TÀI NGUYÊN & CHI PHÍ (CÂU ${questionIndex}) ────────────────┐`));
-  lines.push(`│ • Input Tokens (Non-cache):  ${cost.inputTokens.toLocaleString().padStart(8)} tokens   ($${(cost.inputTokens * 0.8 / 1e6).toFixed(6)})  │`);
-  lines.push(`│ • Cache Write Tokens:        ${cost.cacheWriteTokens.toLocaleString().padStart(8)} tokens   ($${(cost.cacheWriteTokens * 1.0 / 1e6).toFixed(6)})  │`);
-  lines.push(`│ • Cache Read Tokens (HIT):   ${cost.cacheReadTokens.toLocaleString().padStart(8)} tokens   ($${(cost.cacheReadTokens * 0.08 / 1e6).toFixed(6)})  │`);
-  lines.push(`│ • Output Tokens:             ${cost.outputTokens.toLocaleString().padStart(8)} tokens   ($${(cost.outputTokens * 4.0 / 1e6).toFixed(6)})  │`);
+  lines.push(`│ • Input Tokens (Non-cache):  ${cost.inputTokens.toLocaleString().padStart(8)} tokens   ($${((cost.inputTokens * PRICE_BASE_INPUT) / 1e6).toFixed(6)})  │`);
+  lines.push(`│ • Cache Write Tokens:        ${cost.cacheWriteTokens.toLocaleString().padStart(8)} tokens   ($${((cost.cacheWriteTokens * PRICE_CACHE_WRITE) / 1e6).toFixed(6)})  │`);
+  lines.push(`│ • Cache Read Tokens (HIT):   ${cost.cacheReadTokens.toLocaleString().padStart(8)} tokens   ($${((cost.cacheReadTokens * PRICE_CACHE_READ) / 1e6).toFixed(6)})  │`);
+  lines.push(`│ • Output Tokens:             ${cost.outputTokens.toLocaleString().padStart(8)} tokens   ($${((cost.outputTokens * PRICE_OUTPUT) / 1e6).toFixed(6)})  │`);
   lines.push(chalk.cyan(`├────────────────────────────────────────────────────────────────────────┤`));
   lines.push(`│ • Trạng thái Cache:          ${cacheStatus.padEnd(46)} │`);
   lines.push(`│ • Tiết kiệm nhờ Cache:       ` + chalk.green(`$${cost.cacheSavingsUSD.toFixed(6)}`.padEnd(41)) + ` │`);

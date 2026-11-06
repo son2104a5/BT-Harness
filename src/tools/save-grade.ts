@@ -11,14 +11,21 @@ export function createSaveGradeTool(approvalHandler: ApprovalHandler) {
     parameters: z.object({
       studentId: z.string().describe('Mã học viên (ví dụ: HV001)'),
       assignmentId: z.string().default('ASM01').describe('Mã bài tập'),
-      scores: z.record(z.string(), z.number()).describe('Điểm chi tiết từng tiêu chí theo rubric'),
-      totalScore: z.number().describe('Tổng điểm trên thang 10'),
+      scores: z.record(z.string(), z.number().min(0)).describe('Điểm chi tiết từng tiêu chí theo rubric'),
+      totalScore: z.number().min(0).max(10).describe('Tổng điểm trên thang 10'),
       feedback: z.string().describe('Nhận xét chi tiết ưu điểm và nhược điểm của bài nộp')
     }),
     execute: async ({ studentId, assignmentId, scores, totalScore, feedback }) => {
       try {
         const student = await getStudentById(studentId);
-        const studentName = student ? student.fullName : studentId;
+        if (!student) {
+          return {
+            success: false,
+            isError: true,
+            message: `Không tìm thấy học viên có mã '${studentId}' trong hệ thống để lưu điểm.`
+          };
+        }
+        const studentName = student.fullName;
 
         // Trigger Human-in-the-loop approval
         const approved = await approvalHandler({

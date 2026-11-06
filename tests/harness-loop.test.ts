@@ -39,4 +39,40 @@ describe('Agent Loop Logic Suite', () => {
     const harness = new GradingHarness(mockApproval);
     assert.deepStrictEqual(harness.getHistory(), []);
   });
+
+  test('SYSTEM_INSTRUCTION is comprehensive and exceeds 2048 token threshold', () => {
+    assert.ok(SYSTEM_INSTRUCTION.length > 8000, `SYSTEM_INSTRUCTION length is ${SYSTEM_INSTRUCTION.length}, expected > 8000`);
+    assert.ok(SYSTEM_INSTRUCTION.includes('ASM01'));
+    assert.ok(SYSTEM_INSTRUCTION.includes('calculateCart'));
+    assert.ok(SYSTEM_INSTRUCTION.includes('Human-in-the-loop'));
+    assert.ok(SYSTEM_INSTRUCTION.includes('CHECKLIST'));
+  });
+
+  test('GradingHarness rolls back history when generateText fails', async () => {
+    const originalApiKey = process.env.ANTHROPIC_API_KEY;
+    const originalFetch = globalThis.fetch;
+    process.env.ANTHROPIC_API_KEY = 'test-mock-key';
+    globalThis.fetch = (async () => {
+      throw new Error('Anthropic API Network Failure');
+    }) as any;
+
+    try {
+      const harness = new GradingHarness(async () => true);
+      assert.strictEqual(harness.getHistory().length, 0);
+
+      await assert.rejects(async () => {
+        await harness.ask('Câu hỏi gây lỗi');
+      }, /Anthropic API Network Failure/);
+
+      // Verify user message was popped and history is empty
+      assert.strictEqual(harness.getHistory().length, 0);
+    } finally {
+      globalThis.fetch = originalFetch;
+      if (originalApiKey === undefined) {
+        delete process.env.ANTHROPIC_API_KEY;
+      } else {
+        process.env.ANTHROPIC_API_KEY = originalApiKey;
+      }
+    }
+  });
 });

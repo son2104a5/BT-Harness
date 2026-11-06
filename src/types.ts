@@ -1,5 +1,3 @@
-import { z } from 'zod';
-
 export interface RubricCriterion {
   id: string;
   name: string;

@@ -1,11 +1,11 @@
 import { CostBreakdown } from '../types.js';
 
 // Claude 3.5 Haiku Pricing (per 1,000,000 tokens)
-const PRICE_BASE_INPUT = 0.80;
-const PRICE_CACHE_WRITE = 1.00;
-const PRICE_CACHE_READ = 0.08;
-const PRICE_OUTPUT = 4.00;
-const USD_TO_VND_RATE = 25500;
+export const PRICE_BASE_INPUT = 0.80;
+export const PRICE_CACHE_WRITE = 1.00;
+export const PRICE_CACHE_READ = 0.08;
+export const PRICE_OUTPUT = 4.00;
+export const USD_TO_VND_RATE = 25500;
 
 export function calculateClaudeCost(usage: any): CostBreakdown {
   const promptTokens = usage?.promptTokens || usage?.inputTokens || 0;

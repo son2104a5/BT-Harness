@@ -1,6 +1,13 @@
 import { test, describe, afterEach } from 'node:test';
 import assert from 'node:assert';
-import { calculateClaudeCost } from '../src/harness/cost.js';
+import {
+  calculateClaudeCost,
+  PRICE_BASE_INPUT,
+  PRICE_CACHE_WRITE,
+  PRICE_CACHE_READ,
+  PRICE_OUTPUT,
+  USD_TO_VND_RATE
+} from '../src/harness/cost.js';
 import { promptInstructorApproval } from '../src/harness/approval.js';
 
 describe('Cost Calculator Suite', () => {
@@ -75,6 +82,14 @@ describe('Cost Calculator Suite', () => {
     const breakdownNull = calculateClaudeCost(null);
     assert.strictEqual(breakdownNull.totalTokens, 0);
     assert.strictEqual(breakdownNull.costUSD, 0);
+  });
+
+  test('exports accurate Claude 3.5 Haiku pricing constants', () => {
+    assert.strictEqual(PRICE_BASE_INPUT, 0.80);
+    assert.strictEqual(PRICE_CACHE_WRITE, 1.00);
+    assert.strictEqual(PRICE_CACHE_READ, 0.08);
+    assert.strictEqual(PRICE_OUTPUT, 4.00);
+    assert.strictEqual(USD_TO_VND_RATE, 25500);
   });
 });
 

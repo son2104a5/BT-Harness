@@ -42,7 +42,10 @@ export async function saveGradeRecord(record: GradeRecord): Promise<void> {
   }
 
   // Remove existing grade for this student if re-grading
-  grades = grades.filter(g => g.studentId !== record.studentId || g.assignmentId !== record.assignmentId);
+  grades = grades.filter(g =>
+    g.studentId.toUpperCase() !== record.studentId.toUpperCase() ||
+    g.assignmentId.toUpperCase() !== record.assignmentId.toUpperCase()
+  );
   grades.push(record);
   await fs.writeFile(GRADES_PATH, JSON.stringify(grades, null, 2), 'utf-8');
 
