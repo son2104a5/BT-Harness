@@ -2,10 +2,14 @@ import { test, describe, afterEach } from 'node:test';
 import assert from 'node:assert';
 import {
   calculateClaudeCost,
+  calculateModelCost,
   PRICE_BASE_INPUT,
   PRICE_CACHE_WRITE,
   PRICE_CACHE_READ,
   PRICE_OUTPUT,
+  PRICE_GEMINI_BASE_INPUT,
+  PRICE_GEMINI_CACHE_READ,
+  PRICE_GEMINI_OUTPUT,
   USD_TO_VND_RATE
 } from '../src/harness/cost.js';
 import { promptInstructorApproval } from '../src/harness/approval.js';
@@ -90,6 +94,40 @@ describe('Cost Calculator Suite', () => {
     assert.strictEqual(PRICE_CACHE_READ, 0.08);
     assert.strictEqual(PRICE_OUTPUT, 4.00);
     assert.strictEqual(USD_TO_VND_RATE, 25500);
+  });
+
+  test('calculates correct cost for Gemini 1.5 Flash with cached tokens', () => {
+    const usage = {
+      promptTokens: 2500,
+      completionTokens: 200,
+      providerMetadata: {
+        google: {
+          cachedContentTokenCount: 2000
+        }
+      }
+    };
+    const breakdown = calculateClaudeCost(usage, 'gemini');
+    assert.strictEqual(breakdown.cacheReadTokens, 2000);
+    assert.strictEqual(breakdown.inputTokens, 500);
+    // input: 500 * 0.075 / 1M = 0.0000375
+    // cache read: 2000 * 0.01875 / 1M = 0.0000375
+    // output: 200 * 0.30 / 1M = 0.00006
+    // total = 0.000135
+    assert.strictEqual(breakdown.costUSD, 0.000135);
+    assert.ok(breakdown.costVND > 0);
+  });
+
+  test('exports accurate Gemini 1.5 Flash pricing constants', () => {
+    assert.strictEqual(PRICE_GEMINI_BASE_INPUT, 0.075);
+    assert.strictEqual(PRICE_GEMINI_CACHE_READ, 0.01875);
+    assert.strictEqual(PRICE_GEMINI_OUTPUT, 0.30);
+  });
+
+  test('calculateModelCost is an alias of calculateClaudeCost', () => {
+    const usage = { promptTokens: 1000, completionTokens: 200 };
+    const r1 = calculateClaudeCost(usage, 'gemini');
+    const r2 = calculateModelCost(usage, 'gemini');
+    assert.deepStrictEqual(r1, r2);
   });
 });
 
