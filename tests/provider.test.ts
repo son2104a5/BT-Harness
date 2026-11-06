@@ -32,6 +32,9 @@ describe('Provider Factory Suite', () => {
     const anthropicModel = getLanguageModel('anthropic');
     assert.ok(anthropicModel);
     assert.strictEqual(anthropicModel.modelId, 'claude-3-5-haiku-20241022');
+
+    const customModel = getLanguageModel('gemini', 'gemini-1.5-pro');
+    assert.strictEqual(customModel.modelId, 'gemini-1.5-pro');
   });
 
   test('getLanguageModel returns default provider model when called without arguments', () => {
