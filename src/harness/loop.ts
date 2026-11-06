@@ -1,10 +1,10 @@
 import { generateText, CoreMessage } from 'ai';
-import { anthropic } from '@ai-sdk/anthropic';
 import chalk from 'chalk';
 import { config } from '../config.js';
 import { createGradingTools } from '../tools/index.js';
 import { ApprovalHandler } from '../tools/save-grade.js';
 import { calculateClaudeCost } from './cost.js';
+import { getLanguageModel } from './provider.js';
 import { logStepStart, logToolCall, logToolResult, logCostSummary } from './logger.js';
 import { CostBreakdown } from '../types.js';
 
@@ -315,7 +315,7 @@ export class GradingHarness {
     let result: any;
     try {
       result = await (generateText as any)({
-        model: anthropic(config.modelName),
+        model: getLanguageModel(),
         messages: [systemMessage, ...this.messages],
         tools,
         maxSteps,
@@ -338,7 +338,7 @@ export class GradingHarness {
 
           // Accumulate step usage
           if (stepEvent.usage) {
-            const stepCost = calculateClaudeCost(stepEvent.usage);
+            const stepCost = calculateClaudeCost(stepEvent.usage, config.provider);
             accumulatedCost.inputTokens += stepCost.inputTokens;
             accumulatedCost.cacheWriteTokens += stepCost.cacheWriteTokens;
             accumulatedCost.cacheReadTokens += stepCost.cacheReadTokens;

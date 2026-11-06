@@ -1,10 +1,14 @@
 import chalk from 'chalk';
 import { CostBreakdown } from '../types.js';
+import { config } from '../config.js';
 import {
   PRICE_BASE_INPUT,
   PRICE_CACHE_WRITE,
   PRICE_CACHE_READ,
-  PRICE_OUTPUT
+  PRICE_OUTPUT,
+  PRICE_GEMINI_BASE_INPUT,
+  PRICE_GEMINI_CACHE_READ,
+  PRICE_GEMINI_OUTPUT
 } from './cost.js';
 
 export function formatToolPayload(payload: any, maxLength: number = 100): string {
@@ -48,11 +52,17 @@ export function formatCostSummary(cost: CostBreakdown, questionIndex: number): s
       ? chalk.yellow(`WRITE 📦 (${cost.cacheWriteTokens.toLocaleString()} tokens)`)
       : chalk.gray('MISS ─ (0 tokens)');
 
-  lines.push(chalk.cyan.bold(`┌──────────────── BÁO CÁO TÀI NGUYÊN & CHI PHÍ (CÂU ${questionIndex}) ────────────────┐`));
-  lines.push(`│ • Input Tokens (Non-cache):  ${cost.inputTokens.toLocaleString().padStart(8)} tokens   ($${((cost.inputTokens * PRICE_BASE_INPUT) / 1e6).toFixed(6)})  │`);
-  lines.push(`│ • Cache Write Tokens:        ${cost.cacheWriteTokens.toLocaleString().padStart(8)} tokens   ($${((cost.cacheWriteTokens * PRICE_CACHE_WRITE) / 1e6).toFixed(6)})  │`);
-  lines.push(`│ • Cache Read Tokens (HIT):   ${cost.cacheReadTokens.toLocaleString().padStart(8)} tokens   ($${((cost.cacheReadTokens * PRICE_CACHE_READ) / 1e6).toFixed(6)})  │`);
-  lines.push(`│ • Output Tokens:             ${cost.outputTokens.toLocaleString().padStart(8)} tokens   ($${((cost.outputTokens * PRICE_OUTPUT) / 1e6).toFixed(6)})  │`);
+  const isGemini = config.provider === 'gemini';
+  const baseInputPrice = isGemini ? PRICE_GEMINI_BASE_INPUT : PRICE_BASE_INPUT;
+  const cacheWritePrice = isGemini ? PRICE_GEMINI_BASE_INPUT : PRICE_CACHE_WRITE;
+  const cacheReadPrice = isGemini ? PRICE_GEMINI_CACHE_READ : PRICE_CACHE_READ;
+  const outputPrice = isGemini ? PRICE_GEMINI_OUTPUT : PRICE_OUTPUT;
+
+  lines.push(chalk.cyan.bold(`┌──────────────── BÁO CÁO TÀI NGUYÊN & CHI PHÍ (${config.provider.toUpperCase()} - CÂU ${questionIndex}) ────────────────┐`));
+  lines.push(`│ • Input Tokens (Non-cache):  ${cost.inputTokens.toLocaleString().padStart(8)} tokens   ($${((cost.inputTokens * baseInputPrice) / 1e6).toFixed(6)})  │`);
+  lines.push(`│ • Cache Write Tokens:        ${cost.cacheWriteTokens.toLocaleString().padStart(8)} tokens   ($${((cost.cacheWriteTokens * cacheWritePrice) / 1e6).toFixed(6)})  │`);
+  lines.push(`│ • Cache Read Tokens (HIT):   ${cost.cacheReadTokens.toLocaleString().padStart(8)} tokens   ($${((cost.cacheReadTokens * cacheReadPrice) / 1e6).toFixed(6)})  │`);
+  lines.push(`│ • Output Tokens:             ${cost.outputTokens.toLocaleString().padStart(8)} tokens   ($${((cost.outputTokens * outputPrice) / 1e6).toFixed(6)})  │`);
   lines.push(chalk.cyan(`├────────────────────────────────────────────────────────────────────────┤`));
   lines.push(`│ • Trạng thái Cache:          ${cacheStatus.padEnd(46)} │`);
   lines.push(`│ • Tiết kiệm nhờ Cache:       ` + chalk.green(`$${cost.cacheSavingsUSD.toFixed(6)}`.padEnd(41)) + ` │`);

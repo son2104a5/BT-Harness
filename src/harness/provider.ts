@@ -3,6 +3,7 @@ import { anthropic, createAnthropic } from '@ai-sdk/anthropic';
 import { config, LLMProvider } from '../config.js';
 
 export function detectProviderFromKey(key: string): LLMProvider | null {
+  if (!key || typeof key !== 'string') return null;
   const trimmed = key.trim();
   if (trimmed.startsWith('AIza')) {
     return 'gemini';
@@ -14,7 +15,15 @@ export function detectProviderFromKey(key: string): LLMProvider | null {
 }
 
 export function getLanguageModel(targetProvider?: LLMProvider) {
-  const provider = targetProvider || config.provider;
+  let provider = targetProvider || config.provider;
+
+  if (!targetProvider && provider === 'gemini') {
+    const geminiKey = config.geminiApiKey || process.env.GEMINI_API_KEY || process.env.GOOGLE_GENERATIVE_AI_API_KEY;
+    const anthropicKey = config.anthropicApiKey || process.env.ANTHROPIC_API_KEY;
+    if (!geminiKey && anthropicKey) {
+      provider = 'anthropic';
+    }
+  }
 
   if (provider === 'gemini') {
     const apiKey = config.geminiApiKey || process.env.GEMINI_API_KEY || process.env.GOOGLE_GENERATIVE_AI_API_KEY;
