@@ -25,7 +25,8 @@ export const config = {
   deepseekApiKey: deepseekKey,
   geminiModel: process.env.GEMINI_MODEL || 'gemini-3.8-flash',
   anthropicModel: 'claude-3-5-haiku-20241022',
-  deepseekModel: process.env.DEEPSEEK_MODEL || 'deepseek-chat',
+  deepseekModel: process.env.DEEPSEEK_MODEL || 'deepseek-v4p1-flash',
+  deepseekBaseUrl: process.env.DEEPSEEK_BASE_URL || 'https://api.savegate.ai/v1',
   modelName: 'claude-3-5-haiku-20241022',
   maxSteps: Number(process.env.MAX_STEPS) || 5,
   defaultAssignmentId: process.env.DEFAULT_ASSIGNMENT_ID || 'ASM01'

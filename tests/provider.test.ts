@@ -15,6 +15,7 @@ describe('Provider Factory Suite', () => {
 
   test('detectProviderFromKey identifies DeepSeek keys', () => {
     assert.strictEqual(detectProviderFromKey('sk-0123456789abcdefdeepseekkey'), 'deepseek');
+    assert.strictEqual(detectProviderFromKey('sg-0123456789savegatekey'), 'deepseek');
   });
 
   test('detectProviderFromKey returns null for unknown keys', () => {

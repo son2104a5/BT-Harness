@@ -12,7 +12,7 @@ export function detectProviderFromKey(key?: string | null): LLMProvider | null {
   if (trimmed.startsWith('sk-ant-')) {
     return 'anthropic';
   }
-  if (trimmed.startsWith('sk-')) {
+  if (trimmed.startsWith('sk-') || trimmed.startsWith('sg-')) {
     return 'deepseek';
   }
   return null;
@@ -23,8 +23,9 @@ export function getLanguageModel(providerOverride?: LLMProvider, modelOverride?:
 
   if (activeProvider === 'deepseek') {
     const apiKey = config.deepseekApiKey || process.env.DEEPSEEK_API_KEY || '';
-    const deepseek = createDeepSeek({ apiKey });
-    const modelName = modelOverride || config.deepseekModel || 'deepseek-chat';
+    const baseURL = config.deepseekBaseUrl || process.env.DEEPSEEK_BASE_URL || 'https://api.savegate.ai/v1';
+    const deepseek = createDeepSeek({ apiKey, baseURL });
+    const modelName = modelOverride || config.deepseekModel || 'deepseek-v4p1-flash';
     return deepseek(modelName);
   }
 
