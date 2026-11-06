@@ -55,16 +55,16 @@
     <!-- Badges & Actions -->
     <div class="flex items-center gap-3">
       <div class="hidden md:flex items-center gap-2 text-xs">
-        <span class="px-2.5 py-1 rounded-lg bg-slate-800/90 border border-slate-700/80 text-slate-300 flex items-center gap-1.5">
-          <i class="fa-solid fa-microchip text-indigo-400"></i> Claude 3.5 Haiku
+        <span id="activeModelBadge" class="px-2.5 py-1 rounded-lg bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 flex items-center gap-1.5 font-medium transition-all">
+          <i class="fa-solid fa-bolt text-emerald-400"></i> Google Gemini 1.5 Flash
         </span>
         <span class="px-2.5 py-1 rounded-lg bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 flex items-center gap-1.5">
-          <i class="fa-solid fa-bolt text-emerald-400"></i> Ephemeral Cache
+          <i class="fa-solid fa-bolt text-emerald-400"></i> Prompt Caching
         </span>
         <span class="px-2.5 py-1 rounded-lg bg-amber-500/10 border border-amber-500/30 text-amber-300 flex items-center gap-1.5">
           <i class="fa-solid fa-arrows-spin text-amber-400"></i> Max 5 Bước
         </span>
-        <span id="apiKeyStatusBadge" class="px-2.5 py-1 rounded-lg bg-slate-800 border border-slate-700 text-slate-400 flex items-center gap-1.5">
+        <span id="apiKeyStatusBadge" class="px-2.5 py-1 rounded-lg bg-slate-800 border border-slate-700 text-slate-400 flex items-center gap-1.5 cursor-pointer">
           <span class="w-2 h-2 rounded-full bg-slate-500"></span> Đang tải...
         </span>
       </div>
@@ -96,7 +96,7 @@
             <div class="flex-1 text-sm space-y-2">
               <h3 class="font-bold text-white text-base">Xin chào Thầy/Cô! Tôi là Trợ lý Chấm điểm Học viên AI.</h3>
               <p class="text-slate-300 leading-relaxed">
-                Hệ thống được xây dựng theo chuẩn kiến trúc Agent Harness của <strong class="text-indigo-400">Buổi 2 (AI SDK 7 & Anthropic)</strong>, hỗ trợ đầy đủ:
+                Hệ thống được xây dựng theo chuẩn kiến trúc Agent Harness của <strong class="text-indigo-400">Buổi 2 (AI SDK 7 · Google Gemini 1.5 Flash & Claude 3.5)</strong>, hỗ trợ đầy đủ:
               </p>
               <div class="grid grid-cols-2 gap-2 pt-1 text-xs text-slate-300">
                 <div class="bg-slate-800/70 p-2 rounded-lg border border-slate-700/50 flex items-center gap-2">
@@ -269,13 +269,13 @@
             </div>
           </div>
 
-          <!-- Bảng đơn giá Claude 3.5 Haiku -->
+          <!-- Bảng đơn giá Claude 3.5 Haiku & Gemini 1.5 Flash -->
           <div class="bg-slate-900/80 border border-slate-800 rounded-xl p-3 space-y-2">
-            <div class="font-bold text-slate-200 flex items-center justify-between">
+            <div id="pricingCardTitle" class="font-bold text-slate-200 flex items-center justify-between">
               <span>Đơn Giá Claude 3.5 Haiku</span>
               <span class="text-[10px] text-slate-400">(per 1M tokens)</span>
             </div>
-            <div class="space-y-1.5 text-slate-300">
+            <div id="pricingCardBody" class="space-y-1.5 text-slate-300">
               <div class="flex justify-between"><span>Base Input:</span><span class="font-mono text-slate-400">$0.80</span></div>
               <div class="flex justify-between"><span>Cache Write:</span><span class="font-mono text-amber-400">$1.00</span></div>
               <div class="flex justify-between"><span>Cache Read (Hit ⚡):</span><span class="font-mono text-emerald-400 font-bold">$0.08 (-90%)</span></div>
@@ -295,30 +295,61 @@
     <div class="bg-slate-900 border border-slate-800 rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4">
       <div class="flex items-center justify-between pb-3 border-b border-slate-800">
         <h3 class="text-base font-bold text-white flex items-center gap-2">
-          <i class="fa-solid fa-key text-indigo-400"></i> Cấu Hình Anthropic API Key
+          <i class="fa-solid fa-key text-indigo-400"></i> Cấu Hình LLM API Key
         </h3>
         <button onclick="closeConfigModal()" class="text-slate-400 hover:text-white">
           <i class="fa-solid fa-xmark text-lg"></i>
         </button>
       </div>
 
-      <p class="text-xs text-slate-400 leading-relaxed">
-        Nhập khóa API Key của Anthropic để cấp quyền cho mô hình <strong>Claude 3.5 Haiku</strong> hoạt động:
-      </p>
+      <div class="space-y-3">
+        <p class="text-xs text-slate-400 leading-relaxed">
+          Hệ thống hỗ trợ <strong class="text-emerald-400">Google Gemini 1.5 Flash</strong> và <strong class="text-indigo-400">Claude 3.5 Haiku</strong> với tính năng tự động nhận diện thông minh:
+        </p>
 
-      <div>
-        <label class="block text-xs font-semibold text-slate-300 mb-1.5">ANTHROPIC_API_KEY</label>
-        <input
-          id="apiKeyInput"
-          type="password"
-          placeholder="sk-ant-api03-..."
-          class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-indigo-500 font-mono"
-        />
+        <!-- Google AI Studio Link Callout -->
+        <div class="p-3 bg-slate-950/90 rounded-xl border border-emerald-500/20 text-xs space-y-1.5">
+          <div class="flex items-center justify-between">
+            <span class="text-slate-300 font-semibold flex items-center gap-1.5">
+              <i class="fa-brands fa-google text-emerald-400"></i> Nhận Key Gemini Miễn Phí:
+            </span>
+            <a
+              href="https://aistudio.google.com/"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="text-emerald-400 hover:text-emerald-300 font-bold underline flex items-center gap-1 text-[11px]"
+            >
+              Google AI Studio <i class="fa-solid fa-arrow-up-right-from-square text-[10px]"></i>
+            </a>
+          </div>
+          <p class="text-[11px] text-slate-400 leading-normal">
+            Không cần thẻ tín dụng, tạo key trong 30 giây để bắt đầu chấm điểm tự hành miễn phí.
+          </p>
+        </div>
+
+        <div>
+          <div class="flex items-center justify-between mb-1.5">
+            <label class="block text-xs font-semibold text-slate-300">API KEY</label>
+            <span id="keyDetectionHint" class="text-[11px] font-mono text-slate-400">Chờ nhập key...</span>
+          </div>
+          <input
+            id="apiKeyInput"
+            type="password"
+            placeholder="AIzaSy... hoặc sk-ant-api03-..."
+            oninput="onApiKeyInputChange()"
+            class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-indigo-500 font-mono transition-all"
+          />
+          <div id="keyDetectionSubtext" class="mt-2 text-[11px] text-slate-400">
+            Hỗ trợ: <code class="text-emerald-400 font-mono">AIza...</code> (Gemini Flash) hoặc <code class="text-indigo-400 font-mono">sk-ant...</code> (Claude)
+          </div>
+        </div>
       </div>
 
-      <div class="pt-2 flex justify-end gap-2 text-xs font-medium">
-        <button onclick="closeConfigModal()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg">Đóng</button>
-        <button onclick="saveApiKey()" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg shadow-lg shadow-indigo-600/30">Lưu Cấu Hình</button>
+      <div class="pt-2 flex justify-end gap-2 text-xs font-medium border-t border-slate-800">
+        <button onclick="closeConfigModal()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg transition-all">Đóng</button>
+        <button onclick="saveApiKey()" id="saveApiKeyBtn" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg shadow-lg shadow-indigo-600/30 transition-all flex items-center gap-1.5">
+          <i class="fa-solid fa-check"></i> Lưu & Kết Nối
+        </button>
       </div>
     </div>
   </div>
@@ -381,6 +412,7 @@
         hideHITLApproval();
       } else if (data.type === 'data_updated') {
         fetchData();
+        checkStatus();
       }
     }
 
@@ -389,14 +421,52 @@
       try {
         const res = await fetch('/api/status');
         const data = await res.json();
+
+        // 1. Update Header Model Badge
+        const modelBadge = document.getElementById('activeModelBadge');
+        if (modelBadge) {
+          if (data.provider === 'gemini') {
+            modelBadge.className = 'px-2.5 py-1 rounded-lg bg-emerald-500/15 border border-emerald-500/40 text-emerald-300 flex items-center gap-1.5 font-medium transition-all shadow-sm shadow-emerald-500/10';
+            modelBadge.innerHTML = '<i class="fa-solid fa-bolt text-emerald-400"></i> Google Gemini 1.5 Flash';
+          } else {
+            modelBadge.className = 'px-2.5 py-1 rounded-lg bg-indigo-500/15 border border-indigo-500/40 text-indigo-300 flex items-center gap-1.5 font-medium transition-all shadow-sm shadow-indigo-500/10';
+            modelBadge.innerHTML = '<i class="fa-solid fa-microchip text-indigo-400"></i> Claude 3.5 Haiku';
+          }
+        }
+
+        // 2. Update Connection Status Badge
         const badge = document.getElementById('apiKeyStatusBadge');
         if (data.configured) {
-          badge.className = 'px-2.5 py-1 rounded-lg bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 flex items-center gap-1.5';
-          badge.innerHTML = '<span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span> Sẵn Sàng (API Key OK)';
+          const modelName = data.provider === 'gemini' ? 'Gemini 1.5 Flash' : 'Claude 3.5 Haiku';
+          badge.className = 'px-2.5 py-1 rounded-lg bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 flex items-center gap-1.5 cursor-pointer';
+          badge.innerHTML = `<span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span> Sẵn Sàng (${modelName})`;
+          badge.onclick = openConfigModal;
         } else {
           badge.className = 'px-2.5 py-1 rounded-lg bg-rose-500/10 border border-rose-500/30 text-rose-400 flex items-center gap-1.5 cursor-pointer';
           badge.innerHTML = '<span class="w-2 h-2 rounded-full bg-rose-500"></span> Chưa Có API Key (Bấm cài đặt)';
           badge.onclick = openConfigModal;
+        }
+
+        // 3. Update Pricing in Stats Tab
+        const pricingTitle = document.getElementById('pricingCardTitle');
+        const pricingBody = document.getElementById('pricingCardBody');
+        if (pricingTitle && pricingBody) {
+          if (data.provider === 'gemini') {
+            pricingTitle.innerHTML = '<span>Đơn Giá Google Gemini 1.5 Flash</span><span class="text-[10px] text-emerald-400 font-mono">Tiết kiệm 75% Cache</span>';
+            pricingBody.innerHTML = `
+              <div class="flex justify-between"><span>Base Input:</span><span class="font-mono text-slate-400">$0.075 / 1M</span></div>
+              <div class="flex justify-between"><span>Context Caching (Hit ⚡):</span><span class="font-mono text-emerald-400 font-bold">$0.01875 / 1M (-75%)</span></div>
+              <div class="flex justify-between"><span>Output:</span><span class="font-mono text-slate-400">$0.300 / 1M</span></div>
+            `;
+          } else {
+            pricingTitle.innerHTML = '<span>Đơn Giá Claude 3.5 Haiku</span><span class="text-[10px] text-slate-400 font-mono">Tiết kiệm 90% Cache</span>';
+            pricingBody.innerHTML = `
+              <div class="flex justify-between"><span>Base Input:</span><span class="font-mono text-slate-400">$0.80 / 1M</span></div>
+              <div class="flex justify-between"><span>Cache Write:</span><span class="font-mono text-amber-400">$1.00 / 1M</span></div>
+              <div class="flex justify-between"><span>Cache Read (Hit ⚡):</span><span class="font-mono text-emerald-400 font-bold">$0.08 / 1M (-90%)</span></div>
+              <div class="flex justify-between"><span>Output:</span><span class="font-mono text-slate-400">$4.00 / 1M</span></div>
+            `;
+          }
         }
       } catch (e) {
         console.error('Status check failed', e);
@@ -749,15 +819,52 @@
       }
     }
 
-    // Modals
+    // Modals & Smart Key Auto-Detection
+    function onApiKeyInputChange() {
+      const val = document.getElementById('apiKeyInput').value.trim();
+      const hint = document.getElementById('keyDetectionHint');
+      const subtext = document.getElementById('keyDetectionSubtext');
+      const saveBtn = document.getElementById('saveApiKeyBtn');
+
+      if (!val) {
+        hint.className = 'text-[11px] font-mono text-slate-400';
+        hint.textContent = 'Chờ nhập key...';
+        subtext.innerHTML = 'Hỗ trợ: <code class="text-emerald-400 font-mono">AIza...</code> (Gemini Flash) hoặc <code class="text-indigo-400 font-mono">sk-ant...</code> (Claude)';
+        if (saveBtn) saveBtn.className = 'px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg shadow-lg shadow-indigo-600/30 transition-all flex items-center gap-1.5';
+        return;
+      }
+
+      if (val.startsWith('AIza')) {
+        hint.className = 'text-[11px] font-semibold text-emerald-400 flex items-center gap-1';
+        hint.innerHTML = '<i class="fa-solid fa-bolt"></i> Google Gemini';
+        subtext.innerHTML = '<span class="text-emerald-400 font-medium flex items-center gap-1.5"><i class="fa-solid fa-circle-check"></i> Đã nhận diện: <strong>Google Gemini API Key</strong> (Gemini 1.5 Flash)</span>';
+        if (saveBtn) saveBtn.className = 'px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg shadow-lg shadow-emerald-600/30 transition-all flex items-center gap-1.5';
+      } else if (val.startsWith('sk-ant')) {
+        hint.className = 'text-[11px] font-semibold text-indigo-400 flex items-center gap-1';
+        hint.innerHTML = '<i class="fa-solid fa-microchip"></i> Anthropic Claude';
+        subtext.innerHTML = '<span class="text-indigo-400 font-medium flex items-center gap-1.5"><i class="fa-solid fa-circle-check"></i> Đã nhận diện: <strong>Anthropic Claude API Key</strong> (Claude 3.5 Haiku)</span>';
+        if (saveBtn) saveBtn.className = 'px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg shadow-lg shadow-indigo-600/30 transition-all flex items-center gap-1.5';
+      } else {
+        hint.className = 'text-[11px] font-semibold text-amber-400 flex items-center gap-1';
+        hint.innerHTML = '<i class="fa-solid fa-circle-question"></i> Khóa khác';
+        subtext.innerHTML = '<span class="text-amber-400 flex items-center gap-1.5"><i class="fa-solid fa-triangle-exclamation"></i> Khóa không khớp tiền tố AIza... hoặc sk-ant...</span>';
+        if (saveBtn) saveBtn.className = 'px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg shadow-lg shadow-indigo-600/30 transition-all flex items-center gap-1.5';
+      }
+    }
+
     function openConfigModal() {
       document.getElementById('configModal').classList.remove('hidden');
+      onApiKeyInputChange();
+      setTimeout(() => document.getElementById('apiKeyInput')?.focus(), 50);
     }
+
     function closeConfigModal() {
       document.getElementById('configModal').classList.add('hidden');
     }
+
     async function saveApiKey() {
-      const key = document.getElementById('apiKeyInput').value.trim();
+      const input = document.getElementById('apiKeyInput');
+      const key = input.value.trim();
       if (!key) return alert('Vui lòng nhập API Key.');
       try {
         const res = await fetch('/api/config', {
@@ -767,11 +874,12 @@
         });
         const data = await res.json();
         if (data.success) {
-          alert('Đã lưu API Key thành công!');
+          alert(data.message || 'Đã lưu và cập nhật mô hình thành công!');
           closeConfigModal();
+          input.value = '';
           checkStatus();
         } else {
-          alert(data.message);
+          alert(data.message || 'Lỗi cập nhật cấu hình.');
         }
       } catch (e) {
         alert('Lỗi kết nối: ' + e.message);
@@ -814,3 +922,4 @@
   </script>
 </body>
 </html>
+

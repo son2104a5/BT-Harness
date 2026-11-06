@@ -5,7 +5,8 @@ import fs from 'node:fs/promises';
 import { GradingHarness, HarnessEvent } from './harness/loop.js';
 import { loadRubric, getStudents, getStudentById, saveGradeRecord } from './data-store.js';
 import { ToolApprovalRequest } from './types.js';
-import { config } from './config.js';
+import { config, LLMProvider } from './config.js';
+import { detectProviderFromKey } from './harness/provider.js';
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -72,23 +73,46 @@ app.get('/api/events', (req: Request, res: Response) => {
 
 // 2. Status & Config
 app.get('/api/status', (req: Request, res: Response) => {
+  const activeKey = config.provider === 'gemini' ? config.geminiApiKey : config.anthropicApiKey;
   res.json({
-    configured: Boolean(config.anthropicApiKey && config.anthropicApiKey.trim().length > 0),
-    model: config.modelName,
+    configured: Boolean(activeKey && activeKey.trim().length > 0),
+    provider: config.provider,
+    model: config.provider === 'gemini' ? config.geminiModel : config.anthropicModel,
     maxSteps: config.maxSteps,
     defaultAssignmentId: config.defaultAssignmentId
   });
 });
 
 app.post('/api/config', (req: Request, res: Response) => {
-  const { apiKey } = req.body;
-  if (apiKey && typeof apiKey === 'string') {
+  const { apiKey, provider } = req.body;
+  if (!apiKey || typeof apiKey !== 'string') {
+    res.status(400).json({ success: false, message: 'API Key không hợp lệ.' });
+    return;
+  }
+
+  const detected = detectProviderFromKey(apiKey);
+  const targetProvider = (provider || detected || config.provider) as LLMProvider;
+
+  config.provider = targetProvider;
+  if (targetProvider === 'gemini') {
+    config.geminiApiKey = apiKey.trim();
+    process.env.GEMINI_API_KEY = apiKey.trim();
+    process.env.GOOGLE_GENERATIVE_AI_API_KEY = apiKey.trim();
+  } else {
     config.anthropicApiKey = apiKey.trim();
     process.env.ANTHROPIC_API_KEY = apiKey.trim();
-    res.json({ success: true, message: 'Đã cập nhật API Key thành công!' });
-  } else {
-    res.status(400).json({ success: false, message: 'API Key không hợp lệ.' });
   }
+
+  // Hot reload harness
+  harnessInstance = createWebHarness();
+  broadcastSSE({ type: 'data_updated' });
+
+  res.json({
+    success: true,
+    provider: targetProvider,
+    model: targetProvider === 'gemini' ? config.geminiModel : config.anthropicModel,
+    message: `Đã kết nối thành công với ${targetProvider === 'gemini' ? 'Google Gemini 1.5 Flash' : 'Claude 3.5 Haiku'}!`
+  });
 });
 
 // 3. Data Store Endpoints
@@ -139,9 +163,11 @@ app.post('/api/chat', async (req: Request, res: Response) => {
     return;
   }
 
-  if (!config.anthropicApiKey) {
+  const activeKey = config.provider === 'gemini' ? config.geminiApiKey : config.anthropicApiKey;
+  if (!activeKey || !activeKey.trim()) {
+    const keyName = config.provider === 'gemini' ? 'GEMINI_API_KEY' : 'ANTHROPIC_API_KEY';
     res.status(400).json({
-      error: 'Chưa cấu hình ANTHROPIC_API_KEY! Vui lòng nhập API Key trong phần Cấu hình.'
+      error: `Chưa cấu hình ${keyName}! Vui lòng nhập API Key trong phần Cấu hình.`
     });
     return;
   }
@@ -204,3 +230,4 @@ app.listen(PORT, () => {
   console.log(`\n🚀 Web Dashboard đang chạy tại: http://localhost:${PORT}`);
   console.log(`👉 Mở trình duyệt vào http://localhost:${PORT} để trải nghiệm và quay video demo!`);
 });
+
