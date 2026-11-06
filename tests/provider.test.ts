@@ -5,6 +5,7 @@ import { detectProviderFromKey, getLanguageModel } from '../src/harness/provider
 describe('Provider Factory Suite', () => {
   test('detectProviderFromKey identifies Gemini keys', () => {
     assert.strictEqual(detectProviderFromKey('AIzaSyAbc123_testKey'), 'gemini');
+    assert.strictEqual(detectProviderFromKey('AQ.sampleNewFormatGeminiKey'), 'gemini');
   });
 
   test('detectProviderFromKey identifies Anthropic keys', () => {

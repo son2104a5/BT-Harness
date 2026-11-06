@@ -838,11 +838,11 @@
       const input = document.getElementById('apiKeyInput');
       if (select && input) {
         if (select.value === 'gemini') {
-          input.placeholder = 'AIzaSy... (Google Gemini API Key)';
+          input.placeholder = 'AQ... hoặc AIza... (Google Gemini API Key)';
         } else if (select.value === 'anthropic') {
           input.placeholder = 'sk-ant-api03-... (Anthropic Claude API Key)';
         } else {
-          input.placeholder = 'AIzaSy... hoặc sk-ant-api03-...';
+          input.placeholder = 'AQ..., AIza... hoặc sk-ant-api03-...';
         }
       }
       onApiKeyInputChange();
@@ -859,17 +859,17 @@
       if (!val) {
         hint.className = 'text-[11px] font-mono text-slate-400';
         hint.textContent = selected === 'gemini' ? 'Chờ nhập Gemini Key...' : (selected === 'anthropic' ? 'Chờ nhập Claude Key...' : 'Chờ nhập key...');
-        subtext.innerHTML = 'Hỗ trợ: <code class="text-emerald-400 font-mono">AIza...</code> (Gemini Flash) hoặc <code class="text-indigo-400 font-mono">sk-ant...</code> (Claude)';
+        subtext.innerHTML = 'Hỗ trợ: <code class="text-emerald-400 font-mono">AQ...</code> / <code class="text-emerald-400 font-mono">AIza...</code> (Gemini Flash) hoặc <code class="text-indigo-400 font-mono">sk-ant...</code> (Claude)';
         if (saveBtn) saveBtn.className = 'px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg shadow-lg shadow-indigo-600/30 transition-all flex items-center gap-1.5';
         return;
       }
 
-      if (val.startsWith('AIza')) {
+      if (val.startsWith('AIza') || val.startsWith('AQ') || selected === 'gemini') {
         hint.className = 'text-[11px] font-semibold text-emerald-400 flex items-center gap-1';
         hint.innerHTML = '<i class="fa-solid fa-bolt"></i> Google Gemini';
         subtext.innerHTML = '<span class="text-emerald-400 font-medium flex items-center gap-1.5"><i class="fa-solid fa-circle-check"></i> Đã nhận diện: <strong>Google Gemini API Key</strong> (Gemini 1.5 Flash)</span>';
         if (saveBtn) saveBtn.className = 'px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg shadow-lg shadow-emerald-600/30 transition-all flex items-center gap-1.5';
-      } else if (val.startsWith('sk-ant')) {
+      } else if (val.startsWith('sk-ant') || selected === 'anthropic') {
         hint.className = 'text-[11px] font-semibold text-indigo-400 flex items-center gap-1';
         hint.innerHTML = '<i class="fa-solid fa-microchip"></i> Anthropic Claude';
         subtext.innerHTML = '<span class="text-indigo-400 font-medium flex items-center gap-1.5"><i class="fa-solid fa-circle-check"></i> Đã nhận diện: <strong>Anthropic Claude API Key</strong> (Claude 3.5 Haiku)</span>';

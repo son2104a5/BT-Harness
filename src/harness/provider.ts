@@ -5,7 +5,7 @@ import { config, LLMProvider } from '../config.js';
 export function detectProviderFromKey(key: string): LLMProvider | null {
   if (!key || typeof key !== 'string') return null;
   const trimmed = key.trim();
-  if (trimmed.startsWith('AIza')) {
+  if (trimmed.startsWith('AIza') || trimmed.startsWith('AQ')) {
     return 'gemini';
   }
   if (trimmed.startsWith('sk-ant')) {
