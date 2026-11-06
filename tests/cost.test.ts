@@ -4,6 +4,7 @@ import {
   calculateClaudeCost,
   calculateModelCost,
   calculateGeminiCost,
+  calculateDeepSeekCost,
   PRICE_BASE_INPUT,
   PRICE_CACHE_WRITE,
   PRICE_CACHE_READ,
@@ -11,6 +12,9 @@ import {
   PRICE_GEMINI_BASE_INPUT,
   PRICE_GEMINI_CACHE_READ,
   PRICE_GEMINI_OUTPUT,
+  PRICE_DEEPSEEK_BASE_INPUT,
+  PRICE_DEEPSEEK_CACHE_READ,
+  PRICE_DEEPSEEK_OUTPUT,
   USD_TO_VND_RATE
 } from '../src/harness/cost.js';
 import { promptInstructorApproval } from '../src/harness/approval.js';
@@ -205,6 +209,27 @@ describe('Cost Calculator Suite', () => {
     const r1 = calculateClaudeCost(usage, 'gemini');
     const r2 = calculateGeminiCost(usage);
     assert.deepStrictEqual(r1, r2);
+  });
+
+  test('calculateDeepSeekCost calculates cost with DeepSeek rates and cache savings', () => {
+    const usage = {
+      promptTokens: 2000,
+      completionTokens: 500,
+      providerMetadata: {
+        deepseek: {
+          promptCacheHitTokens: 1500
+        }
+      }
+    };
+    const breakdown = calculateDeepSeekCost(usage);
+    // nonCacheInput: 500 tokens * $0.14 / 1M = $0.00007
+    // cacheRead: 1500 tokens * $0.014 / 1M = $0.000021
+    // output: 500 tokens * $0.28 / 1M = $0.00014
+    // total = $0.000231
+    assert.strictEqual(breakdown.cacheReadTokens, 1500);
+    assert.strictEqual(breakdown.inputTokens, 500);
+    assert.strictEqual(breakdown.costUSD, 0.000231);
+    assert.ok(breakdown.cacheSavingsUSD > 0);
   });
 });
 

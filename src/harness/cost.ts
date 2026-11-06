@@ -7,10 +7,15 @@ export const PRICE_CACHE_WRITE = 1.00;
 export const PRICE_CACHE_READ = 0.08;
 export const PRICE_OUTPUT = 4.00;
 
-// Gemini 1.5 Flash Pricing (per 1,000,000 tokens)
+// Gemini 1.5 / 2.5 Flash Pricing (per 1,000,000 tokens)
 export const PRICE_GEMINI_BASE_INPUT = 0.075;
 export const PRICE_GEMINI_CACHE_READ = 0.01875; // 75% discount
 export const PRICE_GEMINI_OUTPUT = 0.30;
+
+// DeepSeek-V3 (deepseek-chat) Pricing (per 1,000,000 tokens)
+export const PRICE_DEEPSEEK_BASE_INPUT = 0.14;
+export const PRICE_DEEPSEEK_CACHE_READ = 0.014; // 90% discount
+export const PRICE_DEEPSEEK_OUTPUT = 0.28;
 
 export const USD_TO_VND_RATE = 25500;
 
@@ -20,6 +25,7 @@ export function calculateClaudeCost(usage: any, provider: LLMProvider = 'anthrop
 
   const anthropicMeta = usage?.providerMetadata?.anthropic || {};
   const googleMeta = usage?.providerMetadata?.google || {};
+  const deepseekMeta = usage?.providerMetadata?.deepseek || {};
 
   // Extract cache write tokens (Anthropic cache creation or AI SDK 7 inputTokenDetails)
   const cacheWriteTokens =
@@ -37,13 +43,16 @@ export function calculateClaudeCost(usage: any, provider: LLMProvider = 'anthrop
     usage?.raw?.cache_creation_input_tokens ||
     0;
 
-  // Extract cache read tokens (AI SDK 7 standard cachedTokens, inputTokenDetails, promptTokensDetails, or providerMetadata)
+  // Extract cache read tokens (AI SDK 7 standard cachedTokens, inputTokenDetails, promptTokensDetails, DeepSeek or providerMetadata)
   const cacheReadTokens =
     usage?.cachedTokens ||
     usage?.inputTokenDetails?.cacheReadTokens ||
     usage?.promptTokensDetails?.cachedTokens ||
     usage?.promptTokensDetails?.cacheReadTokens ||
     usage?.cacheReadTokens ||
+    deepseekMeta.promptCacheHitTokens ||
+    deepseekMeta.prompt_cache_hit_tokens ||
+    usage?.raw?.usage?.prompt_cache_hit_tokens ||
     anthropicMeta.cacheReadInputTokens ||
     anthropicMeta.cache_read_input_tokens ||
     anthropicMeta.usage?.cacheReadInputTokens ||
@@ -70,11 +79,22 @@ export function calculateClaudeCost(usage: any, provider: LLMProvider = 'anthrop
       ? usage.inputTokenDetails.noCacheTokens
       : Math.max(0, effectivePromptTokens - cacheWriteTokens - cacheReadTokens);
 
-  const isGemini = provider === 'gemini';
-  const baseInputPrice = isGemini ? PRICE_GEMINI_BASE_INPUT : PRICE_BASE_INPUT;
-  const cacheWritePrice = isGemini ? PRICE_GEMINI_BASE_INPUT : PRICE_CACHE_WRITE;
-  const cacheReadPrice = isGemini ? PRICE_GEMINI_CACHE_READ : PRICE_CACHE_READ;
-  const outputPrice = isGemini ? PRICE_GEMINI_OUTPUT : PRICE_OUTPUT;
+  let baseInputPrice = PRICE_BASE_INPUT;
+  let cacheWritePrice = PRICE_CACHE_WRITE;
+  let cacheReadPrice = PRICE_CACHE_READ;
+  let outputPrice = PRICE_OUTPUT;
+
+  if (provider === 'gemini') {
+    baseInputPrice = PRICE_GEMINI_BASE_INPUT;
+    cacheWritePrice = PRICE_GEMINI_BASE_INPUT;
+    cacheReadPrice = PRICE_GEMINI_CACHE_READ;
+    outputPrice = PRICE_GEMINI_OUTPUT;
+  } else if (provider === 'deepseek') {
+    baseInputPrice = PRICE_DEEPSEEK_BASE_INPUT;
+    cacheWritePrice = PRICE_DEEPSEEK_BASE_INPUT;
+    cacheReadPrice = PRICE_DEEPSEEK_CACHE_READ;
+    outputPrice = PRICE_DEEPSEEK_OUTPUT;
+  }
 
   const costBaseInput = (nonCacheInputTokens * baseInputPrice) / 1_000_000;
   const costCacheWrite = (cacheWriteTokens * cacheWritePrice) / 1_000_000;
@@ -112,4 +132,8 @@ export const calculateModelCost = calculateClaudeCost;
 
 export function calculateGeminiCost(usage: any): CostBreakdown {
   return calculateClaudeCost(usage, 'gemini');
+}
+
+export function calculateDeepSeekCost(usage: any): CostBreakdown {
+  return calculateClaudeCost(usage, 'deepseek');
 }

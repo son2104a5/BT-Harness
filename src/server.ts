@@ -84,11 +84,16 @@ app.get('/api/test-gemini', async (req: Request, res: Response) => {
 });
 
 app.get('/api/status', (req: Request, res: Response) => {
-  const activeKey = config.provider === 'gemini' ? config.geminiApiKey : config.anthropicApiKey;
+  const activeKey = config.provider === 'deepseek'
+    ? config.deepseekApiKey
+    : (config.provider === 'gemini' ? config.geminiApiKey : config.anthropicApiKey);
+  const activeModel = config.provider === 'deepseek'
+    ? config.deepseekModel
+    : (config.provider === 'gemini' ? config.geminiModel : config.anthropicModel);
   res.json({
     configured: Boolean(activeKey && activeKey.trim().length > 0),
     provider: config.provider,
-    model: config.provider === 'gemini' ? config.geminiModel : config.anthropicModel,
+    model: activeModel,
     maxSteps: config.maxSteps,
     defaultAssignmentId: config.defaultAssignmentId
   });
@@ -105,7 +110,13 @@ app.post('/api/config', (req: Request, res: Response) => {
   const targetProvider = (provider || detected || config.provider) as LLMProvider;
 
   config.provider = targetProvider;
-  if (targetProvider === 'gemini') {
+  if (targetProvider === 'deepseek') {
+    config.deepseekApiKey = apiKey.trim();
+    process.env.DEEPSEEK_API_KEY = apiKey.trim();
+    if (model && typeof model === 'string') {
+      config.deepseekModel = model.trim();
+    }
+  } else if (targetProvider === 'gemini') {
     config.geminiApiKey = apiKey.trim();
     process.env.GEMINI_API_KEY = apiKey.trim();
     process.env.GOOGLE_GENERATIVE_AI_API_KEY = apiKey.trim();
@@ -124,11 +135,15 @@ app.post('/api/config', (req: Request, res: Response) => {
   harnessInstance = createWebHarness();
   broadcastSSE({ type: 'data_updated' });
 
+  const activeModelName = targetProvider === 'deepseek'
+    ? ('DeepSeek ' + config.deepseekModel)
+    : (targetProvider === 'gemini' ? ('Google ' + config.geminiModel) : 'Claude 3.5 Haiku');
+
   res.json({
     success: true,
     provider: targetProvider,
-    model: targetProvider === 'gemini' ? config.geminiModel : config.anthropicModel,
-    message: `Đã kết nối thành công với ${targetProvider === 'gemini' ? ('Google ' + config.geminiModel) : 'Claude 3.5 Haiku'}!`
+    model: targetProvider === 'deepseek' ? config.deepseekModel : (targetProvider === 'gemini' ? config.geminiModel : config.anthropicModel),
+    message: `Đã kết nối thành công với ${activeModelName}!`
   });
 });
 
@@ -180,9 +195,13 @@ app.post('/api/chat', async (req: Request, res: Response) => {
     return;
   }
 
-  const activeKey = config.provider === 'gemini' ? config.geminiApiKey : config.anthropicApiKey;
+  const activeKey = config.provider === 'deepseek'
+    ? config.deepseekApiKey
+    : (config.provider === 'gemini' ? config.geminiApiKey : config.anthropicApiKey);
   if (!activeKey || !activeKey.trim()) {
-    const keyName = config.provider === 'gemini' ? 'GEMINI_API_KEY' : 'ANTHROPIC_API_KEY';
+    const keyName = config.provider === 'deepseek'
+      ? 'DEEPSEEK_API_KEY'
+      : (config.provider === 'gemini' ? 'GEMINI_API_KEY' : 'ANTHROPIC_API_KEY');
     res.status(400).json({
       error: `Chưa cấu hình ${keyName}! Vui lòng nhập API Key trong phần Cấu hình.`
     });

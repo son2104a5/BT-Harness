@@ -1,5 +1,6 @@
 import { createGoogleGenerativeAI } from '@ai-sdk/google';
 import { createAnthropic } from '@ai-sdk/anthropic';
+import { createDeepSeek } from '@ai-sdk/deepseek';
 import { config, LLMProvider } from '../config.js';
 
 export function detectProviderFromKey(key?: string | null): LLMProvider | null {
@@ -11,18 +12,20 @@ export function detectProviderFromKey(key?: string | null): LLMProvider | null {
   if (trimmed.startsWith('sk-ant-')) {
     return 'anthropic';
   }
+  if (trimmed.startsWith('sk-')) {
+    return 'deepseek';
+  }
   return null;
 }
 
 export function getLanguageModel(providerOverride?: LLMProvider, modelOverride?: string): any {
   let activeProvider = providerOverride || config.provider;
 
-  if (!providerOverride && activeProvider === 'gemini') {
-    const geminiKey = config.geminiApiKey || process.env.GEMINI_API_KEY || process.env.GOOGLE_GENERATIVE_AI_API_KEY;
-    const anthropicKey = config.anthropicApiKey || process.env.ANTHROPIC_API_KEY;
-    if (!geminiKey && anthropicKey) {
-      activeProvider = 'anthropic';
-    }
+  if (activeProvider === 'deepseek') {
+    const apiKey = config.deepseekApiKey || process.env.DEEPSEEK_API_KEY || '';
+    const deepseek = createDeepSeek({ apiKey });
+    const modelName = modelOverride || config.deepseekModel || 'deepseek-chat';
+    return deepseek(modelName);
   }
 
   if (activeProvider === 'gemini') {

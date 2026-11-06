@@ -13,6 +13,10 @@ describe('Provider Factory Suite', () => {
     assert.strictEqual(detectProviderFromKey('sk-ant-api03-testKey'), 'anthropic');
   });
 
+  test('detectProviderFromKey identifies DeepSeek keys', () => {
+    assert.strictEqual(detectProviderFromKey('sk-0123456789abcdefdeepseekkey'), 'deepseek');
+  });
+
   test('detectProviderFromKey returns null for unknown keys', () => {
     assert.strictEqual(detectProviderFromKey('unknown_key_prefix'), null);
   });
@@ -24,7 +28,11 @@ describe('Provider Factory Suite', () => {
     assert.strictEqual(detectProviderFromKey(undefined as any), null);
   });
 
-  test('getLanguageModel returns valid model instance for gemini and anthropic', () => {
+  test('getLanguageModel returns valid model instance for deepseek, gemini and anthropic', () => {
+    const deepseekModel = getLanguageModel('deepseek');
+    assert.ok(deepseekModel);
+    assert.strictEqual(deepseekModel.modelId, config.deepseekModel);
+
     const geminiModel = getLanguageModel('gemini');
     assert.ok(geminiModel);
     assert.strictEqual(geminiModel.modelId, config.geminiModel);
@@ -33,8 +41,8 @@ describe('Provider Factory Suite', () => {
     assert.ok(anthropicModel);
     assert.strictEqual(anthropicModel.modelId, 'claude-3-5-haiku-20241022');
 
-    const customModel = getLanguageModel('gemini', 'gemini-1.5-pro');
-    assert.strictEqual(customModel.modelId, 'gemini-1.5-pro');
+    const customModel = getLanguageModel('deepseek', 'deepseek-reasoner');
+    assert.strictEqual(customModel.modelId, 'deepseek-reasoner');
   });
 
   test('getLanguageModel returns default provider model when called without arguments', () => {
