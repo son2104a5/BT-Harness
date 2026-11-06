@@ -35,6 +35,9 @@ export async function promptInstructorApproval(request: ToolApprovalRequest): Pr
   return new Promise<boolean>((resolve) => {
     rl.question(chalk.yellow.bold('👉 Thầy/Cô có đồng ý lưu điểm số này vào hệ thống? [y/N]: '), (answer) => {
       rl.close();
+      if (process.stdin.isPaused()) {
+        process.stdin.resume();
+      }
       const trimmed = answer.trim().toLowerCase();
       const approved = trimmed === 'y' || trimmed === 'yes';
       if (approved) {

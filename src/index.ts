@@ -62,7 +62,16 @@ export async function runInteractiveREPL() {
     output: process.stdout
   });
 
+  rl.on('SIGINT', () => {
+    console.log(chalk.cyan('\nĐã nhận tín hiệu dừng (Ctrl+C). Tạm biệt thầy/cô!'));
+    rl.close();
+    process.exit(0);
+  });
+
   const promptUser = () => {
+    if (process.stdin.isPaused()) {
+      process.stdin.resume();
+    }
     rl.question(chalk.green.bold('\n👨‍🏫 Giảng viên > '), async (input) => {
       const query = input.trim();
       if (!query) {
