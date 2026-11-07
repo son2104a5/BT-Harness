@@ -6,13 +6,13 @@
     {
       "id": "logic",
       "name": "Tính đúng đắn thuật toán",
-      "maxScore": 4.0,
+      "maxScore": 6.0,
       "description": "Tính toán đúng tổng tiền hàng, áp mã giảm giá hợp lệ, tính đúng thuế VAT 10%."
     },
     {
       "id": "clean_code",
       "name": "Cấu trúc & Clean Code",
-      "maxScore": 3.0,
+      "maxScore": 1.0,
       "description": "Đặt tên biến/hàm rõ nghĩa, cấu trúc module gọn gàng, không lặp code, có comment giải thích."
     },
     {

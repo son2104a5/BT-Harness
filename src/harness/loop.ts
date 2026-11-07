@@ -58,7 +58,7 @@ Bước 4: Đệ trình phê duyệt điểm số (Submit Grade for Instructor A
 - Gọi công cụ save_grade với đầy đủ các tham số:
   + studentId: Mã học viên (ví dụ: 'HV001')
   + assignmentId: Mã bài tập (mặc định 'ASM01')
-  + scores: Đối tượng điểm số chi tiết theo từng tiêu chí (ví dụ: { logic: 3.5, clean_code: 2.5, error_handling: 1.5, edge_cases: 0.5 })
+  + scores: Đối tượng điểm số chi tiết theo từng tiêu chí (ví dụ: { logic: 5.5, clean_code: 1.0, error_handling: 1.5, edge_cases: 0.5 })
   + totalScore: Tổng điểm trên thang điểm 10 (từ 0.0 đến 10.0)
   + feedback: Nhận xét chi tiết, mang tính sư phạm và khuyến khích học viên
 - Chờ Giảng viên phản hồi trong giao diện Human-in-the-loop:
@@ -91,40 +91,40 @@ PHẦN IV: CHI TIẾT TIÊU CHÍ BAREM CHẤM ĐIỂM (ASM01 RUBRIC BREAKDOWN)
 Thang điểm chuẩn 10.0 điểm được phân bổ vào 4 tiêu chí cốt lõi:
 
 --------------------------------------------------------------------------------
-1. TIÊU CHÍ: TÍNH ĐÚNG ĐẮN THUẬT TOÁN (ID: 'logic') - TỐI ĐA 4.0 ĐIỂM
+1. TIÊU CHÍ: TÍNH ĐÚNG ĐẮN THUẬT TOÁN (ID: 'logic') - TỐI ĐA 6.0 ĐIỂM
 --------------------------------------------------------------------------------
 Mục tiêu: Đánh giá khả năng chuyển hóa các quy tắc tính toán tài chính thành thuật toán chính xác.
 Phân rã thang điểm:
-- Tính đúng tổng tiền hàng (subtotal): 1.5 điểm
-  + [1.5 điểm]: Nhân đúng đơn giá với số lượng của từng mặt hàng (item.price * item.quantity) và cộng dồn chính xác.
-  + [0.5 điểm]: Chỉ cộng đơn giá (item.price) mà bỏ qua số lượng (item.quantity).
+- Tính đúng tổng tiền hàng (subtotal): 2.0 điểm
+  + [2.0 điểm]: Nhân đúng đơn giá với số lượng của từng mặt hàng (item.price * item.quantity) và cộng dồn chính xác.
+  + [1.0 điểm]: Chỉ cộng đơn giá (item.price) mà bỏ qua số lượng (item.quantity).
   + [0.0 điểm]: Thuật toán tính subtotal sai lệch hoàn toàn.
-- Xử lý mã giảm giá voucher (discount): 1.5 điểm
-  + [1.5 điểm]: Nhận diện đúng mã voucher (ví dụ: SALE10 giảm 10%, VIP20 giảm 20%), tính đúng số tiền được giảm theo tỷ lệ hoặc số tiền cố định.
-  + [1.0 điểm]: Áp dụng giảm giá đúng nhưng không kiểm tra trường hợp voucher không hợp lệ hoặc sai mã.
+- Xử lý mã giảm giá voucher (discount): 2.5 điểm
+  + [2.5 điểm]: Nhận diện đúng mã voucher (ví dụ: SALE10 giảm 10%, VIP20 giảm 20%), tính đúng số tiền được giảm theo tỷ lệ hoặc số tiền cố định.
+  + [1.5 điểm]: Áp dụng giảm giá đúng nhưng không kiểm tra trường hợp voucher không hợp lệ hoặc sai mã.
   + [0.5 điểm]: Có xử lý voucher nhưng công thức tính phần trăm sai lệch.
   + [0.0 điểm]: Bỏ qua hoặc tính sai hoàn toàn giảm giá.
-- Tính đúng thuế VAT 10% và tổng thanh toán (total): 1.0 điểm
-  + [1.0 điểm]: Tính đúng VAT 10% trên số tiền sau khi đã trừ giảm giá: (subtotal - discount) * 0.1, và total = subtotal - discount + vat.
+- Tính đúng thuế VAT 10% và tổng thanh toán (total): 1.5 điểm
+  + [1.5 điểm]: Tính đúng VAT 10% trên số tiền sau khi đã trừ giảm giá: (subtotal - discount) * 0.1, và total = subtotal - discount + vat.
   + [0.5 điểm]: Tính thuế VAT 10% trên subtotal trước khi giảm giá (sai nghiệp vụ tài chính tiêu chuẩn nhưng có tính thuế).
   + [0.0 điểm]: Bỏ qua thuế VAT hoặc công thức tổng total sai lệch.
 
 --------------------------------------------------------------------------------
-2. TIÊU CHÍ: CẤU TRÚC & CLEAN CODE (ID: 'clean_code') - TỐI ĐA 3.0 ĐIỂM
+2. TIÊU CHÍ: CẤU TRÚC & CLEAN CODE (ID: 'clean_code') - TỐI ĐA 1.0 ĐIỂM
 --------------------------------------------------------------------------------
 Mục tiêu: Đánh giá tính chuyên nghiệp, sự sáng sủa, khả năng bảo trì và thói quen viết mã sạch của học viên.
 Phân rã thang điểm:
-- Quy ước đặt tên (Naming Conventions): 1.0 điểm
-  + [1.0 điểm]: Tên biến, tham số và hàm mang tính tự mô tả cao (self-documenting), tuân thủ camelCase (subtotal, discount, vat, total, itemPrice).
-  + [0.5 điểm]: Đặt tên biến ngắn ngủi, một ký tự vô nghĩa như a, b, c, x, temp, res mà không rõ ngữ cảnh.
+- Quy ước đặt tên (Naming Conventions): 0.4 điểm
+  + [0.4 điểm]: Tên biến, tham số và hàm mang tính tự mô tả cao (self-documenting), tuân thủ camelCase (subtotal, discount, vat, total, itemPrice).
+  + [0.2 điểm]: Đặt tên biến ngắn ngủi, một ký tự vô nghĩa như a, b, c, x, temp, res mà không rõ ngữ cảnh.
   + [0.0 điểm]: Đặt tên gây hiểu lầm hoặc vi phạm nghiêm trọng quy chuẩn JavaScript.
-- Cấu trúc module và tái sử dụng mã (DRY Principle): 1.0 điểm
-  + [1.0 điểm]: Không lặp code (DRY), tách bạch các bước tính toán logic rõ ràng, sử dụng cú pháp hiện đại (for...of, Array.prototype.reduce).
-  + [0.5 điểm]: Sử dụng vòng lặp for chỉ số lồng ghép cồng kềnh, lặp lại logic tính toán nhiều lần.
+- Cấu trúc module và tái sử dụng mã (DRY Principle): 0.3 điểm
+  + [0.3 điểm]: Không lặp code (DRY), tách bạch các bước tính toán logic rõ ràng, sử dụng cú pháp hiện đại (for...of, Array.prototype.reduce).
+  + [0.1 điểm]: Sử dụng vòng lặp for chỉ số lồng ghép cồng kềnh, lặp lại logic tính toán nhiều lần.
   + [0.0 điểm]: Mã nguồn rối rắm, khó theo dõi luồng dữ liệu.
-- Định dạng và chú thích giải thích (Formatting & Comments): 1.0 điểm
-  + [1.0 điểm]: Thụt lề nhất quán, sử dụng khoảng trắng chuẩn mực, có chú thích giải thích súc tích các khối logic quan trọng hoặc công thức nghiệp vụ.
-  + [0.5 điểm]: Định dạng lộn xộn, thụt thò không đều nhưng vẫn có thể đọc được.
+- Định dạng và chú thích giải thích (Formatting & Comments): 0.3 điểm
+  + [0.3 điểm]: Thụt lề nhất quán, sử dụng khoảng trắng chuẩn mực, có chú thích giải thích súc tích các khối logic quan trọng hoặc công thức nghiệp vụ.
+  + [0.1 điểm]: Định dạng lộn xộn, thụt thò không đều nhưng vẫn có thể đọc được.
   + [0.0 điểm]: Không có định dạng, viết mã dính liền một dòng hoặc comment sai lệch logic thực tế.
 
 --------------------------------------------------------------------------------
