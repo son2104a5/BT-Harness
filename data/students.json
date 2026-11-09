@@ -22,5 +22,13 @@
     "status": "pending",
     "submissionCode": "function calculateCart(items, voucher) {\n  var subtotal = 0;\n  for (var i = 0; i < items.length; i++) {\n    subtotal += items[i].price * items[i].quantity;\n  }\n  var discount = 0;\n  if (voucher.code == 'SALE10') {\n    discount = 50000;\n  }\n  var vat = subtotal * 0.1;\n  return {\n    subtotal: subtotal,\n    discount: discount,\n    vat: vat,\n    total: subtotal - discount + vat\n  };\n}",
     "filePath": "data/submissions/HV003_calculateCart.js"
+  },
+  {
+    "studentId": "HV_UP_KSKN",
+    "fullName": "Test Student Registration",
+    "assignmentId": "ASM01",
+    "status": "pending",
+    "submissionCode": "export function calculateCart(items: any[]) { return { total: 50 }; }",
+    "filePath": "data/submissions/uploaded/test_reg_1794210451366.ts"
   }
 ]
