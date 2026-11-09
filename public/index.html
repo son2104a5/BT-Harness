@@ -108,7 +108,7 @@
               <div class="grid grid-cols-2 gap-2 pt-1 text-xs text-slate-300">
                 <div class="bg-slate-800/70 p-2 rounded-lg border border-slate-700/50 flex items-center gap-2">
                   <i class="fa-solid fa-wrench text-amber-400"></i>
-                  <span><strong>4 Custom Tools:</strong> Rubric, Bài nộp, Đọc file & Lưu điểm</span>
+                  <span><strong>5 Custom Tools:</strong> Rubric, Bài nộp, Đọc file, Git Repo & Lưu điểm</span>
                 </div>
                 <div class="bg-slate-800/70 p-2 rounded-lg border border-slate-700/50 flex items-center gap-2">
                   <i class="fa-solid fa-shield-halved text-emerald-400"></i>
@@ -150,7 +150,18 @@
         </div>
 
         <!-- Chat Input Form -->
-        <form onsubmit="handleSend(event)" class="flex gap-2">
+        <form onsubmit="handleSend(event)" class="flex items-center gap-2">
+          <div class="flex items-center gap-2 shrink-0">
+            <input type="file" id="submissionFileInput" accept=".js,.ts" class="hidden" onchange="onFileSelected(event)">
+            <button type="button" onclick="document.getElementById('submissionFileInput').click()" title="Tải file bài làm (.js, .ts)" class="p-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-indigo-400 hover:text-white border border-slate-700 transition-all flex items-center gap-1.5 text-xs font-medium">
+              <i class="fa-solid fa-paperclip"></i>
+              <span class="hidden sm:inline">Tải file</span>
+            </button>
+            <button type="button" onclick="openGitModal()" title="Chấm bài từ link Git Repository" class="p-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-purple-400 hover:text-white border border-slate-700 transition-all flex items-center gap-1.5 text-xs font-medium">
+              <i class="fa-brands fa-github"></i>
+              <span class="hidden sm:inline">Link Git</span>
+            </button>
+          </div>
           <input
             id="messageInput"
             type="text"
@@ -160,7 +171,7 @@
           <button
             id="sendBtn"
             type="submit"
-            class="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl font-medium text-sm transition-all flex items-center gap-2 shadow-lg shadow-indigo-600/30 disabled:opacity-50"
+            class="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl font-medium text-sm transition-all flex items-center gap-2 shadow-lg shadow-indigo-600/30 disabled:opacity-50 shrink-0"
           >
             <span>Gửi</span>
             <i class="fa-solid fa-paper-plane text-xs"></i>
@@ -410,6 +421,35 @@
     </div>
   </div>
 
+  <!-- GIT REPOSITORY MODAL -->
+  <div id="gitModal" onclick="if(event.target === this) closeGitModal()" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm animate-fade-in">
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4">
+      <div class="flex items-center justify-between pb-3 border-b border-slate-800">
+        <h3 class="text-base font-bold text-white flex items-center gap-2">
+          <i class="fa-brands fa-github text-purple-400"></i> Chấm Bài Từ Git Repository
+        </h3>
+        <button onclick="closeGitModal()" class="text-slate-400 hover:text-white">
+          <i class="fa-solid fa-xmark text-lg"></i>
+        </button>
+      </div>
+      <div class="space-y-3 text-xs">
+        <div>
+          <label class="block text-slate-300 font-medium mb-1">Đường dẫn Git Repository (HTTPS):</label>
+          <input type="text" id="gitRepoUrlInput" onkeydown="if(event.key === 'Enter') { event.preventDefault(); submitGitRepo(); }" placeholder="https://github.com/username/cart-project" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-white font-mono focus:border-purple-500 focus:outline-none">
+        </div>
+        <p class="text-slate-400 text-[11px] leading-relaxed">
+          Hệ thống sẽ clone mã nguồn mới nhất từ repo, tự động định vị file bài làm và chấm điểm theo barem ASM01.
+        </p>
+      </div>
+      <div class="pt-3 border-t border-slate-800 flex items-center justify-end gap-2">
+        <button onclick="closeGitModal()" class="px-4 py-2 text-slate-300 hover:text-white bg-slate-800 rounded-lg">Hủy</button>
+        <button onclick="submitGitRepo()" class="px-4 py-2 bg-purple-600 hover:bg-purple-500 text-white font-semibold rounded-lg shadow-lg shadow-purple-600/30 flex items-center gap-1.5">
+          <i class="fa-solid fa-play"></i> Bắt đầu chấm
+        </button>
+      </div>
+    </div>
+  </div>
+
   <!-- SCRIPT LOGIC -->
   <script>
     let currentPendingApprovalId = null;
@@ -536,6 +576,16 @@
       }
     }
 
+    function getStudentOriginBadge(s) {
+      if (s?.studentId?.startsWith('HV_UP_') || s?.filePath?.includes('uploaded')) {
+        return `<span class="text-[10px] font-medium px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 flex items-center gap-1 shrink-0"><i class="fa-solid fa-paperclip text-[9px]"></i> Tải lên</span>`;
+      }
+      if (s?.studentId?.startsWith('HV_GIT_') || s?.filePath?.includes('git_repos')) {
+        return `<span class="text-[10px] font-medium px-2 py-0.5 rounded-full bg-purple-500/20 text-purple-300 border border-purple-500/30 flex items-center gap-1 shrink-0"><i class="fa-brands fa-github text-[9px]"></i> Git Repo</span>`;
+      }
+      return `<span class="text-[10px] font-medium px-2 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 flex items-center gap-1 shrink-0"><i class="fa-solid fa-server text-[9px]"></i> Hệ thống</span>`;
+    }
+
     function renderStudents(students) {
       const container = document.getElementById('studentsList');
       const pendingCount = students.filter(s => s.status === 'pending').length;
@@ -543,9 +593,12 @@
 
       container.innerHTML = students.map(s => `
         <div class="bg-slate-900 border border-slate-800 rounded-xl p-3 space-y-2 hover:border-slate-700 transition-all">
-          <div class="flex items-center justify-between">
-            <span class="font-bold text-white text-sm">${escapeHtml(s.fullName || s.studentId)}</span>
-            <span class="font-mono text-xs px-2 py-0.5 rounded ${s.status === 'pending' ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30' : 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'}">
+          <div class="flex items-center justify-between gap-2">
+            <div class="flex items-center gap-2 min-w-0">
+              <span class="font-bold text-white text-sm truncate">${escapeHtml(s.fullName || s.studentId)}</span>
+              ${getStudentOriginBadge(s)}
+            </div>
+            <span class="font-mono text-xs px-2 py-0.5 rounded shrink-0 ${s.status === 'pending' ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30' : 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'}">
               ${s.status === 'pending' ? 'Chưa chấm' : 'Đã có điểm ✅'}
             </span>
           </div>
@@ -1065,6 +1118,64 @@ ${escapeHtml(req.feedback)}
     function closeCodeModal() {
       document.getElementById('codeModal').classList.add('hidden');
     }
+
+    function openGitModal() {
+      document.getElementById('gitModal').classList.remove('hidden');
+      setTimeout(() => document.getElementById('gitRepoUrlInput')?.focus(), 50);
+    }
+    function closeGitModal() {
+      document.getElementById('gitModal').classList.add('hidden');
+    }
+    function submitGitRepo() {
+      const url = document.getElementById('gitRepoUrlInput').value.trim();
+      if (!url) return alert('Vui lòng nhập URL Git repository.');
+      closeGitModal();
+      document.getElementById('messageInput').value = `Hãy clone repository ${url} và chấm điểm bài tập ASM01 theo barem chuẩn giúp tôi.`;
+      handleSend();
+    }
+
+    async function onFileSelected(event) {
+      const file = event.target.files?.[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = async (e) => {
+        const content = e.target?.result;
+        if (typeof content !== 'string') return;
+
+        try {
+          const res = await fetch('/api/upload-submission', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              fileName: file.name,
+              content
+            })
+          });
+          const data = await res.json();
+          if (data.success) {
+            document.getElementById('messageInput').value = `Tôi vừa nộp file bài làm '${file.name}' (${data.student.studentId}). Hãy đọc file '${data.student.filePath}' và chấm điểm bài này theo barem ASM01.`;
+            handleSend();
+            fetchData();
+          } else {
+            alert(data.error || 'Lỗi tải lên file.');
+          }
+        } catch (err) {
+          alert('Lỗi kết nối upload: ' + err.message);
+        } finally {
+          event.target.value = '';
+        }
+      };
+      reader.readAsText(file);
+    }
+
+    window.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        closeGitModal();
+        closeCodeModal();
+        closeConfigModal();
+      }
+    });
 
     function escapeHtml(str) {
       return String(str || '')
