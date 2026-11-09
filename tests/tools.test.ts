@@ -2,7 +2,7 @@ import { test, describe, after } from 'node:test';
 import assert from 'node:assert';
 import fs from 'node:fs/promises';
 import path from 'node:path';
-import { getRubricTool, getSubmissionTool, readFileTool, createSaveGradeTool, createGradingTools } from '../src/tools/index.js';
+import { getRubricTool, getSubmissionTool, readFileTool, fetchGitRepoTool, createSaveGradeTool, createGradingTools } from '../src/tools/index.js';
 import { getStudents } from '../src/data-store.js';
 
 describe('Custom Tools Suite', () => {
@@ -186,13 +186,14 @@ describe('Custom Tools Suite', () => {
     }
   });
 
-  test('createGradingTools returns full suite of 4 tools', () => {
-    assert.ok(readFileTool);
+  test('createGradingTools returns full suite of 5 tools', () => {
+    assert.ok(fetchGitRepoTool);
     const mockApproval = async () => true;
     const tools = createGradingTools(mockApproval);
     assert.ok(tools.get_rubric);
     assert.ok(tools.get_student_submission);
     assert.ok(tools.read_file);
+    assert.ok(tools.fetch_git_repo);
     assert.ok(tools.save_grade);
   });
 });

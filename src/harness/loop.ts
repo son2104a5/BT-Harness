@@ -32,11 +32,12 @@ PHẦN I: TRIẾT LÝ CHẤM ĐIỂM VÀ NGUYÊN TẮC SƯ PHẠM (GRADING PHILO
 ================================================================================
 PHẦN II: CÁC CÔNG CỤ ĐƯỢC PHÉP SỬ DỤNG (AVAILABLE TOOLS)
 ================================================================================
-Hệ thống cung cấp cho bạn 4 công cụ (tools) chuyên dụng:
+Hệ thống cung cấp cho bạn 5 công cụ (tools) chuyên dụng:
 1. get_rubric: Tra cứu barem chấm điểm chính thức của bài tập (mặc định assignmentId: 'ASM01').
 2. get_student_submission: Lấy thông tin bài nộp của học viên (studentId) hoặc liệt kê danh sách các học viên cần chấm (listPendingOnly: true).
 3. read_file: Đọc nội dung file văn bản hoặc mã nguồn theo đường dẫn tương đối (hoặc tuyệt đối) trong dự án. Sử dụng khi bài nộp cung cấp filePath hoặc khi người dùng yêu cầu kiểm tra/chấm một file mã nguồn cụ thể trên đĩa.
-4. save_grade: Lưu trữ kết quả chấm điểm học viên sau khi được Giảng viên phê duyệt qua quy trình Human-in-the-loop.
+4. fetch_git_repo: Tải kho chứa mã nguồn từ đường dẫn Git repository công khai (GitHub/GitLab/Bitbucket). Sử dụng khi người dùng cung cấp link repo Git cần chấm bài. Tool sẽ trả về thư mục clone và đường dẫn file bài nộp đề xuất.
+5. save_grade: Lưu trữ kết quả chấm điểm học viên sau khi được Giảng viên phê duyệt qua quy trình Human-in-the-loop.
 
 ================================================================================
 PHẦN III: QUY TRÌNH CHẤM ĐIỂM TIÊU CHUẨN 4 BƯỚC (STANDARD 4-STEP GRADING PROTOCOL)
@@ -48,6 +49,7 @@ Bước 1: Tra cứu bài nộp của học viên (Retrieve Student Submission)
 - Nếu Giảng viên hỏi danh sách những học viên chưa được chấm điểm, gọi get_student_submission với tham số listPendingOnly = true.
 - Kiểm tra thông tin học viên: họ tên, mã bài tập, trạng thái bài nộp (pending hoặc graded) và mã nguồn bài làm (submissionCode).
 - Nếu bài nộp của học viên có trường filePath (hoặc người dùng yêu cầu chấm theo đường dẫn file), hãy chủ động gọi công cụ read_file với tham số path để lấy toàn bộ nội dung mã nguồn mới nhất từ đĩa trước khi chấm điểm.
+- Nếu người dùng cung cấp link kho chứa Git (ví dụ https://github.com/...): Hãy chủ động gọi công cụ fetch_git_repo trước để tải mã nguồn, sau đó gọi read_file với file bài làm được đề xuất để phân tích và chấm điểm.
 - Nếu mã học viên không tồn tại trong hệ thống, dừng quy trình và thông báo lịch sự cho Giảng viên.
 
 Bước 2: Tra cứu barem chấm điểm chính thức (Retrieve Grading Rubric)
@@ -226,7 +228,7 @@ Dựa trên tổng điểm đánh giá từ 4 tiêu chí, học viên được x
 - Trung bình (5.0 - 6.4 điểm): Hoàn thành một nửa yêu cầu, code còn sơ sài, thiếu nhiều bước kiểm tra phòng thủ.
 - Yếu / Cần làm lại (< 5.0 điểm): Thuật toán sai lệch nghiêm trọng, không đáp ứng yêu cầu cơ bản của đề bài, mã nguồn bị crash khi chạy.
 
-Ghi nhớ tối thượng: Luôn luôn gọi get_student_submission để đọc bài nộp (và read_file nếu bài nộp có filePath), get_rubric để kiểm tra tiêu chuẩn, đối chiếu checklist cẩn trọng, và LUÔN gọi save_grade để Giảng viên phê duyệt trước khi ghi nhận điểm số!`;
+Ghi nhớ tối thượng: Luôn luôn gọi get_student_submission để đọc bài nộp (hoặc fetch_git_repo nếu người dùng cung cấp link repo Git, và read_file để đọc file mã nguồn), get_rubric để kiểm tra tiêu chuẩn, đối chiếu checklist cẩn trọng, và LUÔN gọi save_grade để Giảng viên phê duyệt trước khi ghi nhận điểm số!`;
 
 export function shouldDisableToolsOnLastStep(currentStep: number, maxSteps: number): boolean {
   return currentStep >= maxSteps - 1;

@@ -10,11 +10,14 @@ describe('Agent Loop Logic Suite', () => {
     assert.ok(SYSTEM_INSTRUCTION.includes('save_grade'));
     assert.ok(SYSTEM_INSTRUCTION.includes('get_rubric'));
     assert.ok(SYSTEM_INSTRUCTION.includes('get_student_submission'));
+    assert.ok(SYSTEM_INSTRUCTION.includes('fetch_git_repo'));
   });
 
-  test('SYSTEM_INSTRUCTION describes read_file tool and filePath handling', () => {
+  test('SYSTEM_INSTRUCTION describes read_file and fetch_git_repo tools and workflow', () => {
     assert.ok(SYSTEM_INSTRUCTION.includes('read_file'));
     assert.ok(SYSTEM_INSTRUCTION.includes('filePath'));
+    assert.ok(SYSTEM_INSTRUCTION.includes('fetch_git_repo'));
+    assert.ok(SYSTEM_INSTRUCTION.includes('github.com'));
   });
 
   test('shouldDisableToolsOnLastStep triggers on step 4 when maxSteps is 5', () => {
