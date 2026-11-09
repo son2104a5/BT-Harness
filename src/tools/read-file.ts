@@ -4,6 +4,7 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 
 const MAX_FILE_SIZE_BYTES = 200 * 1024; // 200 KB
+export const ALLOWED_EXTENSIONS = new Set(['.js', '.ts', '.json', '.txt', '.md', '.csv', '.html', '.css']);
 
 export const readFileSchema = z.object({
   path: z.string().describe('Đường dẫn tương đối (từ gốc dự án) hoặc tuyệt đối tới file cần đọc (ví dụ: data/submissions/HV001_calculateCart.js)')
@@ -35,6 +36,17 @@ export const readFileTool = tool({
         };
       }
 
+      // Security Check: Whitelist file extensions & block sensitive files
+      const baseName = path.basename(resolvedPath);
+      const ext = path.extname(resolvedPath).toLowerCase();
+
+      if (baseName === '.env' || baseName.startsWith('.env.') || (ext && !ALLOWED_EXTENSIONS.has(ext))) {
+        return {
+          isError: true,
+          message: `Từ chối truy cập: Định dạng file '${ext || baseName}' không được hỗ trợ hoặc bị hạn chế vì lý do an toàn.`
+        };
+      }
+
       // Stat check
       let stat;
       try {
@@ -50,6 +62,13 @@ export const readFileTool = tool({
         return {
           isError: true,
           message: `Đường dẫn '${inputPath}' là một thư mục, không phải là file.`
+        };
+      }
+
+      if (!ALLOWED_EXTENSIONS.has(ext)) {
+        return {
+          isError: true,
+          message: `Từ chối truy cập: Định dạng file '${ext || baseName}' không được hỗ trợ hoặc bị hạn chế vì lý do an toàn.`
         };
       }
 

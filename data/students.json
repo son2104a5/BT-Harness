@@ -12,7 +12,7 @@
     "fullName": "Trần Thị Bình",
     "assignmentId": "ASM01",
     "status": "pending",
-    "submissionCode": "function calculateCart(items, voucher) {\n  let total = 0;\n  for (let i = 0; i < items.length; i++) {\n    total += items[i].price;\n  }\n  return { total };\n}",
+    "submissionCode": "function calculateCart(items, voucher) {\n  if (!Array.isArray(items)) {\n    throw new TypeError('Tham số items phải là một mảng');\n  }\n\n  const subtotal = items.reduce((acc, item) => {\n    if (typeof item.price !== 'number' || item.price < 0) {\n      throw new Error('Đơn giá không hợp lệ');\n    }\n    if (!Number.isInteger(item.quantity) || item.quantity <= 0) {\n      throw new Error('Số lượng không hợp lệ');\n    }\n    return acc + item.price * item.quantity;\n  }, 0);\n\n  let discount = 0;\n  if (voucher && typeof voucher.code === 'string') {\n    if (voucher.code === 'SALE10') {\n      discount = subtotal * 0.1;\n    } else if (voucher.code === 'VIP20') {\n      discount = subtotal * 0.2;\n    }\n  }\n\n  discount = Math.min(discount, subtotal);\n  const vat = Math.round((subtotal - discount) * 0.1 * 100) / 100;\n  const total = Math.round((subtotal - discount + vat) * 100) / 100;\n\n  return {\n    subtotal,\n    discount,\n    vat,\n    total\n  };\n}",
     "filePath": "data/submissions/HV002_calculateCart.js"
   },
   {
@@ -20,7 +20,7 @@
     "fullName": "Lê Hoàng Cường",
     "assignmentId": "ASM01",
     "status": "pending",
-    "submissionCode": "function calculateCart(items, voucher) {\n  if (!Array.isArray(items) || items.length === 0) return { subtotal: 0, discount: 0, vat: 0, total: 0 };\n  let subtotal = 0;\n  for (const item of items) {\n    if (item.price < 0 || item.quantity < 0) throw new Error('Invalid item values');\n    subtotal += item.price * item.quantity;\n  }\n  let discount = 0;\n  if (voucher && voucher.code === 'VIP20') {\n    discount = Math.min(subtotal, subtotal * 0.2);\n  }\n  const vat = Math.max(0, subtotal - discount) * 0.1;\n  return {\n    subtotal: Math.round(subtotal),\n    discount: Math.round(discount),\n    vat: Math.round(vat),\n    total: Math.round(subtotal - discount + vat)\n  };\n}",
+    "submissionCode": "function calculateCart(items, voucher) {\n  var subtotal = 0;\n  for (var i = 0; i < items.length; i++) {\n    subtotal += items[i].price * items[i].quantity;\n  }\n  var discount = 0;\n  if (voucher.code == 'SALE10') {\n    discount = 50000;\n  }\n  var vat = subtotal * 0.1;\n  return {\n    subtotal: subtotal,\n    discount: discount,\n    vat: vat,\n    total: subtotal - discount + vat\n  };\n}",
     "filePath": "data/submissions/HV003_calculateCart.js"
   }
 ]

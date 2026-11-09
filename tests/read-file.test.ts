@@ -1,6 +1,7 @@
 import { test, describe } from 'node:test';
 import assert from 'node:assert';
 import path from 'node:path';
+import fs from 'node:fs/promises';
 import { readFileTool } from '../src/tools/read-file.js';
 
 describe('Read File Tool Suite', () => {
@@ -53,5 +54,58 @@ describe('Read File Tool Suite', () => {
     });
     assert.strictEqual(result.isError, true);
     assert.ok(result.message.includes('hợp lệ'));
+  });
+
+  test('blocks disallowed file extensions and sensitive .env files', async () => {
+    // Disallowed extension (.py)
+    const pyResult = await (readFileTool as any).execute({
+      path: 'scripts/run.py'
+    });
+    assert.strictEqual(pyResult.isError, true);
+    assert.ok(pyResult.message.includes('Từ chối truy cập') && pyResult.message.includes('.py'));
+
+    // Disallowed extension (.exe)
+    const exeResult = await (readFileTool as any).execute({
+      path: 'malicious.exe'
+    });
+    assert.strictEqual(exeResult.isError, true);
+    assert.ok(exeResult.message.includes('Từ chối truy cập') && exeResult.message.includes('.exe'));
+
+    // Root .env file
+    const envResult = await (readFileTool as any).execute({
+      path: '.env'
+    });
+    assert.strictEqual(envResult.isError, true);
+    assert.ok(envResult.message.includes('Từ chối truy cập'));
+
+    // .env.local file
+    const envLocalResult = await (readFileTool as any).execute({
+      path: '.env.local'
+    });
+    assert.strictEqual(envLocalResult.isError, true);
+    assert.ok(envLocalResult.message.includes('Từ chối truy cập'));
+  });
+
+  test('rejects files exceeding MAX_FILE_SIZE_BYTES (200 KB)', async () => {
+    const tempLargeFilePath = path.resolve(process.cwd(), 'data/temp_oversized_test.txt');
+    // 201 KB = 201 * 1024 bytes
+    const largeBuffer = Buffer.alloc(201 * 1024, 'A');
+
+    try {
+      await fs.writeFile(tempLargeFilePath, largeBuffer);
+
+      const result = await (readFileTool as any).execute({
+        path: 'data/temp_oversized_test.txt'
+      });
+
+      assert.strictEqual(result.isError, true);
+      assert.ok(result.message.includes('vượt quá giới hạn cho phép (200 KB)'));
+    } finally {
+      try {
+        await fs.unlink(tempLargeFilePath);
+      } catch {
+        // ignore cleanup error
+      }
+    }
   });
 });
