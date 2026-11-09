@@ -18,6 +18,7 @@ export interface StudentSubmission {
   assignmentId: string;
   status: 'pending' | 'graded';
   submissionCode: string;
+  filePath?: string;
 }
 
 export interface GradeRecord {

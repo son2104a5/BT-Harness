@@ -94,4 +94,10 @@ describe('Data Store Module', () => {
     assert.strictEqual(grades.length, 1);
     assert.strictEqual(grades[0].totalScore, 9.0);
   });
+
+  test('getStudentById returns student with filePath if present', async () => {
+    const student = await getStudentById('HV001');
+    assert.ok(student);
+    assert.strictEqual(student.filePath, 'data/submissions/HV001_calculateCart.js');
+  });
 });
