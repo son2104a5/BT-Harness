@@ -196,6 +196,66 @@ app.get('/api/data', async (req: Request, res: Response) => {
   }
 });
 
+// Upload submission file
+app.post('/api/upload-submission', express.json({ limit: '500kb' }), async (req: Request, res: Response) => {
+  try {
+    const { fileName, content, studentName } = req.body;
+    if (!fileName || typeof fileName !== 'string' || !content || typeof content !== 'string') {
+      res.status(400).json({ success: false, error: 'Thiếu tên file hoặc nội dung file bài nộp.' });
+      return;
+    }
+
+    const ext = path.extname(fileName).toLowerCase();
+    if (!['.js', '.ts'].includes(ext)) {
+      res.status(400).json({ success: false, error: 'Chỉ chấp nhận file mã nguồn JavaScript (.js) hoặc TypeScript (.ts).' });
+      return;
+    }
+
+    const uploadDir = path.resolve(process.cwd(), 'data/submissions/uploaded');
+    await fs.mkdir(uploadDir, { recursive: true });
+
+    const cleanBaseName = path.basename(fileName, ext).replace(/[^a-zA-Z0-9_-]/g, '_');
+    const uniqueFileName = `${Date.now()}_${cleanBaseName}${ext}`;
+    const targetFilePath = path.join(uploadDir, uniqueFileName);
+
+    await fs.writeFile(targetFilePath, content, 'utf-8');
+    const relativePath = path.relative(process.cwd(), targetFilePath).replace(/\\/g, '/');
+
+    // Register new student in students.json
+    const studentId = `HV_UP_${Date.now().toString(36).slice(-4).toUpperCase()}`;
+    const name = (studentName && typeof studentName === 'string' && studentName.trim())
+      ? studentName.trim()
+      : `Học viên (${cleanBaseName})`;
+
+    const students = await getStudents(false);
+    const newStudent = {
+      studentId,
+      fullName: name,
+      assignmentId: config.defaultAssignmentId || 'ASM01',
+      status: 'pending' as const,
+      submissionCode: content,
+      filePath: relativePath
+    };
+    students.push(newStudent);
+
+    await fs.writeFile(
+      path.resolve(process.cwd(), 'data/students.json'),
+      JSON.stringify(students, null, 2),
+      'utf-8'
+    );
+
+    broadcastSSE({ type: 'data_updated' });
+
+    res.json({
+      success: true,
+      student: newStudent,
+      message: `Đã tải lên thành công file '${fileName}' và đăng ký học viên ${studentId}!`
+    });
+  } catch (err: any) {
+    res.status(500).json({ success: false, error: err.message || 'Lỗi xử lý file bài nộp.' });
+  }
+});
+
 // 4. Reset Demo State
 app.post('/api/reset', async (req: Request, res: Response) => {
   try {
