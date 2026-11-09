@@ -2,7 +2,7 @@ import { test, describe, after } from 'node:test';
 import assert from 'node:assert';
 import fs from 'node:fs/promises';
 import path from 'node:path';
-import { getRubricTool, getSubmissionTool, createSaveGradeTool, createGradingTools } from '../src/tools/index.js';
+import { getRubricTool, getSubmissionTool, readFileTool, createSaveGradeTool, createGradingTools } from '../src/tools/index.js';
 import { getStudents } from '../src/data-store.js';
 
 describe('Custom Tools Suite', () => {
@@ -51,6 +51,7 @@ describe('Custom Tools Suite', () => {
     assert.strictEqual(result.isError, false);
     assert.ok(Array.isArray(result.students));
     assert.ok(result.students.length > 0);
+    assert.ok(result.students[0].filePath);
   });
 
   test('saveGradeTool rejects when approval returns false', async () => {
@@ -170,11 +171,28 @@ describe('Custom Tools Suite', () => {
     assert.strictEqual(negCrit.success, false);
   });
 
-  test('createGradingTools returns full tool suite', () => {
+  test('getSubmissionTool reads physical file when submissionCode is empty', async () => {
+    const originalStudents = await fs.readFile(path.resolve(process.cwd(), 'data/students.json'), 'utf-8');
+    try {
+      const students = JSON.parse(originalStudents);
+      students[0].submissionCode = '';
+      await fs.writeFile(path.resolve(process.cwd(), 'data/students.json'), JSON.stringify(students, null, 2));
+
+      const result = await (getSubmissionTool as any).execute({ studentId: 'HV001' });
+      assert.strictEqual(result.isError, false);
+      assert.ok(result.student.submissionCode.includes('calculateCart'));
+    } finally {
+      await fs.writeFile(path.resolve(process.cwd(), 'data/students.json'), originalStudents, 'utf-8');
+    }
+  });
+
+  test('createGradingTools returns full suite of 4 tools', () => {
+    assert.ok(readFileTool);
     const mockApproval = async () => true;
     const tools = createGradingTools(mockApproval);
     assert.ok(tools.get_rubric);
     assert.ok(tools.get_student_submission);
+    assert.ok(tools.read_file);
     assert.ok(tools.save_grade);
   });
 });

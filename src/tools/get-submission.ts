@@ -1,5 +1,7 @@
 import { tool } from 'ai';
 import { z } from 'zod';
+import fs from 'node:fs/promises';
+import path from 'node:path';
 import { getStudents, getStudentById } from '../data-store.js';
 
 const submissionSchema = z.object({
@@ -20,9 +22,23 @@ export const getSubmissionTool = tool({
             message: `Không tìm thấy học viên có mã '${studentId}' trong hệ thống bài nộp.`
           };
         }
+
+        // If submissionCode is empty but filePath exists, read from file
+        let code = student.submissionCode;
+        if ((!code || !code.trim()) && student.filePath) {
+          try {
+            code = await fs.readFile(path.resolve(process.cwd(), student.filePath), 'utf-8');
+          } catch {
+            // keep existing code if read fails
+          }
+        }
+
         return {
           isError: false,
-          student
+          student: {
+            ...student,
+            submissionCode: code
+          }
         };
       }
 
@@ -34,7 +50,8 @@ export const getSubmissionTool = tool({
           studentId: s.studentId,
           fullName: s.fullName,
           assignmentId: s.assignmentId,
-          status: s.status
+          status: s.status,
+          filePath: s.filePath
         }))
       };
     } catch (error: any) {
