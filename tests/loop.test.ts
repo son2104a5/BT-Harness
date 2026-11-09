@@ -12,6 +12,11 @@ describe('Agent Loop Logic Suite', () => {
     assert.ok(SYSTEM_INSTRUCTION.includes('get_student_submission'));
   });
 
+  test('SYSTEM_INSTRUCTION describes read_file tool and filePath handling', () => {
+    assert.ok(SYSTEM_INSTRUCTION.includes('read_file'));
+    assert.ok(SYSTEM_INSTRUCTION.includes('filePath'));
+  });
+
   test('shouldDisableToolsOnLastStep triggers on step 4 when maxSteps is 5', () => {
     assert.strictEqual(shouldDisableToolsOnLastStep(0, 5), false);
     assert.strictEqual(shouldDisableToolsOnLastStep(1, 5), false);
